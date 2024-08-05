@@ -20,13 +20,24 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_H__
-#define __NILE_H__
+#ifndef __NILE_CORE_H__
+#define __NILE_CORE_H__
 
 #include <wonderful.h>
-#include "nile/hardware.h"
-#include "nile/core.h"
-#include "nile/spi.h"
-#include "nile/flash.h"
+#include "hardware.h"
 
-#endif /* __NILE_H__ */
+#ifndef __ASSEMBLER__
+#include <stdbool.h>
+#include <stdint.h>
+
+/**
+ * @brief Clear NILE_SEG_MASK.
+ * 
+ * Note that if executing from ROML, this is only guaranteed safe for
+ * >=1MB cartridges - due to the linear address.
+ */
+void nile_clear_seg_mask(void);
+
+#endif /* __ASSEMBLER__ */
+
+#endif /* __NILE_CORE_H__ */

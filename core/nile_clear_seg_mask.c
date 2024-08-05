@@ -20,13 +20,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_H__
-#define __NILE_H__
-
 #include <wonderful.h>
-#include "nile/hardware.h"
-#include "nile/core.h"
-#include "nile/spi.h"
-#include "nile/flash.h"
+#include <ws.h>
+#include <ws/hardware.h>
+#include "nile.h"
 
-#endif /* __NILE_H__ */
+void nile_clear_seg_mask(void) {
+	uint16_t mask = inportw(IO_NILE_SEG_MASK);
+    uint16_t rom_mask = (mask >> NILE_SEG_ROM_SHIFT) & NILE_SEG_ROM_MASK;
+    uint16_t ram_mask = (mask >> NILE_SEG_RAM_SHIFT) & NILE_SEG_RAM_MASK;
+    outportw(IO_BANK_2003_RAM, inportw(IO_BANK_2003_RAM) & ram_mask);
+	outportw(IO_BANK_2003_ROM0, inportw(IO_BANK_2003_ROM0) & rom_mask);
+	outportw(IO_BANK_2003_ROM1, inportw(IO_BANK_2003_ROM1) & rom_mask);
+	outportb(IO_BANK_ROM_LINEAR, inportb(IO_BANK_ROM_LINEAR) & (rom_mask >> 4));
+
+	outportw(IO_NILE_SEG_MASK, 0xFFFF);
+
+}
