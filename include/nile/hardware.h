@@ -41,7 +41,7 @@
 #define NILE_SPI_BUFFER_IDX         0x4000
 #define NILE_SPI_START              0x8000
 #define NILE_SPI_BUSY               0x8000
-#define NILE_SPI_CFG_MASK           0x7800 ///< Device + Buffer + Clock mask
+#define NILE_SPI_CFG_MASK           (NILE_SPI_BUFFER_IDX | NILE_SPI_DEV_MASK | NILE_SPI_CLOCK_MASK)
 #define IO_NILE_SPI_CNT    0xE0
 
 #define NILE_POW_CLOCK     0x01

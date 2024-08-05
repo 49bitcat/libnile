@@ -24,8 +24,7 @@
 #define __NILEFS_H__
 
 #include <wonderful.h>
-#include "../storage/ffconf.h"
-#include "../fatfs/source/ff.h"
-#include "../fatfs/source/diskio.h"
+#include "nilefs/ff.h"
+#include "nilefs/diskio.h"
 
 #endif /* __NILEFS_H__ */

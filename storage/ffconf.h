@@ -8,14 +8,21 @@
 / Function Configurations
 /---------------------------------------------------------------------------*/
 
+#ifdef LIBNILE_IPL1
+#define FF_FS_READONLY	1
+#else
 #define FF_FS_READONLY	0
+#endif
 /* This option switches read-only configuration. (0:Read/Write or 1:Read-only)
 /  Read-only configuration removes writing API functions, f_write(), f_sync(),
 /  f_unlink(), f_mkdir(), f_chmod(), f_rename(), f_truncate(), f_getfree()
 /  and optional writing functions as well. */
 
-
+#ifdef LIBNILE_IPL1
+#define FF_FS_MINIMIZE	2
+#else
 #define FF_FS_MINIMIZE	0
+#endif
 /* This option defines minimization level to remove some basic API functions.
 /
 /   0: Basic functions are fully enabled.
@@ -34,7 +41,11 @@
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
 
+#ifdef LIBNILE_IPL1
+#define FF_USE_FASTSEEK	0
+#else
 #define FF_USE_FASTSEEK	1
+#endif
 /* This option switches fast seek function. (0:Disable or 1:Enable) */
 
 
@@ -55,8 +66,11 @@
 #define FF_USE_FORWARD	0
 /* This option switches f_forward() function. (0:Disable or 1:Enable) */
 
-
+#ifdef LIBNILE_IPL1
+#define FF_USE_STRFUNC	0
+#else
 #define FF_USE_STRFUNC	2
+#endif
 #define FF_PRINT_LLI	0
 #define FF_PRINT_FLOAT	0
 #define FF_STRF_ENCODE	3
@@ -84,7 +98,11 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
+#ifdef LIBNILE_IPL1
+#define FF_CODE_PAGE	1
+#else
 #define FF_CODE_PAGE	437
+#endif
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect code page setting can cause a file open failure.
 /
@@ -113,7 +131,11 @@
 */
 
 
+#ifdef LIBNILE_IPL1
+#define FF_USE_LFN		0
+#else
 #define FF_USE_LFN		2
+#endif
 #define FF_MAX_LFN		255
 /* The FF_USE_LFN switches the support for LFN (long file name).
 /
@@ -133,7 +155,11 @@
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
 
+#ifdef LIBNILE_IPL1
+#define FF_LFN_UNICODE	0
+#else
 #define FF_LFN_UNICODE	2
+#endif
 /* This option switches the character encoding on the API when LFN is enabled.
 /
 /   0: ANSI/OEM in current CP (TCHAR = char)
@@ -153,7 +179,11 @@
 /  on character encoding. When LFN is not enabled, these options have no effect. */
 
 
+#ifdef LIBNILE_IPL1
+#define FF_FS_RPATH		0
+#else
 #define FF_FS_RPATH		2
+#endif
 /* This option configures support for relative path.
 /
 /   0: Disable relative path and remove related functions.

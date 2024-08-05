@@ -26,6 +26,9 @@
 #include <wonderful.h>
 #include "hardware.h"
 
+#define NILE_FLASH_ID_W25Q16JV_IQ 0xEF4015
+#define NILE_FLASH_ID_W25Q16JV_IM 0xEF7015
+
 #define NILE_FLASH_SR1_BUSY      (1 << 0) ///< Erase/Write in Progress
 #define NILE_FLASH_SR1_WEL       (1 << 1) ///< Write Enable Latch
 #define NILE_FLASH_SR1_BP0       (1 << 2) ///< Block Protect 0

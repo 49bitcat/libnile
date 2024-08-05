@@ -4,7 +4,17 @@
 
 WONDERFUL_TOOLCHAIN ?= /opt/wonderful
 TARGET ?= wswan/medium
+DESTDIR ?= dist/$(TARGET)
+
+DEFINES :=
+TARGET_PATH = $(TARGET)
+
+ifeq ($(TARGET),ipl1)
+DEFINES += -DLIBNILE_IPL1 -DLIBNILE_EXPOSE_DISKIO_DETAIL_CODE
+include $(WONDERFUL_TOOLCHAIN)/target/wswan/bootfriend/makedefs.mk
+else
 include $(WONDERFUL_TOOLCHAIN)/target/$(TARGET)/makedefs.mk
+endif
 
 # Source code paths
 # -----------------
@@ -12,11 +22,6 @@ include $(WONDERFUL_TOOLCHAIN)/target/$(TARGET)/makedefs.mk
 INCLUDEDIRS	:= core fatfs/source include storage
 CORE_SRCDIRS	:= core
 STORAGE_SRCDIRS	:= fatfs/source storage
-
-# Defines passed to all files
-# ---------------------------
-
-DEFINES		:=
 
 # Libraries
 # ---------
@@ -27,8 +32,10 @@ LIBDIRS		:= $(WF_ARCH_LIBDIRS)
 # ---------------
 
 BUILDDIR	:= build/$(TARGET)
-CORE_ARCHIVE	:= lib/libnile.a
-STORAGE_ARCHIVE	:= lib/libnilefs.a
+CORE_ARCHIVE_NAME := libnile.a
+STORAGE_ARCHIVE_NAME := libnilefs.a
+CORE_ARCHIVE	:= $(BUILDDIR)/libnile.a
+STORAGE_ARCHIVE	:= $(BUILDDIR)/libnilefs.a
 
 # Verbose flag
 # ------------
@@ -59,7 +66,7 @@ ASFLAGS		+= -x assembler-with-cpp $(DEFINES) $(WF_ARCH_CFLAGS) \
 		   $(INCLUDEFLAGS) -ffunction-sections -fdata-sections
 
 CFLAGS		+= -std=gnu11 $(WARNFLAGS) $(DEFINES) $(WF_ARCH_CFLAGS) \
-		   $(INCLUDEFLAGS) -ffunction-sections -fdata-sections -O2
+		   $(INCLUDEFLAGS) -ffunction-sections -fdata-sections -Os
 
 # Intermediate build files
 # ------------------------
@@ -77,9 +84,18 @@ DEPS		:= $(OBJS:.o=.d)
 # Targets
 # -------
 
-.PHONY: all clean doc
+.PHONY: all clean install doc
 
 all: $(CORE_ARCHIVE) $(STORAGE_ARCHIVE) compile_commands.json
+
+install: $(CORE_ARCHIVE) $(STORAGE_ARCHIVE)
+	@echo "  INSTALL"
+	@$(MKDIR) -p $(DESTDIR)/lib
+	$(_V)cp $(CORE_ARCHIVE) $(DESTDIR)/lib
+	$(_V)cp $(STORAGE_ARCHIVE) $(DESTDIR)/lib
+	$(_V)cp -R include $(DESTDIR)
+	@$(MKDIR) -p $(DESTDIR)/include/nilefs
+	$(_V)cp storage/ffconf.h fatfs/source/ff.h fatfs/source/diskio.h $(DESTDIR)/include/nilefs
 
 $(CORE_ARCHIVE): $(CORE_OBJS)
 	@echo "  AR      $@"

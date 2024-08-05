@@ -39,7 +39,7 @@ nile_tf_wait_ready:
     // volatile uint16_t prev_bank = inportw(IO_BANK_2003_ROM1);
     in ax, IO_BANK_2003_ROM1
     push ax
-    mov ax, NILE_SEG_ROM_RX
+    mov ax, NILE_SEG_ROM_SPI_RX
     out IO_BANK_2003_ROM1, ax
 
     push 0x3000
@@ -97,12 +97,12 @@ nile_tf_wait_ready_done:
     .align 2
     .global nile_tf_cs_high
 nile_tf_cs_high:
-    ASM_PLATFORM_CALL nile_spi_wait_busy
+    ASM_PLATFORM_CALL nile_spi_wait_ready
     test al, al
     jz nile_tf_cs_high_ret
 
     in ax, IO_NILE_SPI_CNT
-    and ax, 0x7800
+    and ax, NILE_SPI_CFG_MASK
     or ah, ((NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS high
     out IO_NILE_SPI_CNT, ax
 
@@ -120,12 +120,12 @@ nile_tf_cs_high_ret:
     .align 2
     .global nile_tf_cs_low
 nile_tf_cs_low:
-    ASM_PLATFORM_CALL nile_spi_wait_busy
+    ASM_PLATFORM_CALL nile_spi_wait_ready
     test al, al
     jz nile_tf_cs_low_ret
 
     in ax, IO_NILE_SPI_CNT
-    and ax, 0x7800
+    and ax, NILE_SPI_CFG_MASK
     or ah, ((NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS low
     out IO_NILE_SPI_CNT, ax
 
@@ -162,7 +162,7 @@ __read256:
 .macro __waitread1
     // nile_spi_rx(1, NILE_SPI_MODE_WAIT_READ)
     in ax, IO_NILE_SPI_CNT
-    and ax, 0x7800
+    and ax, NILE_SPI_CFG_MASK
     or ah, ((NILE_SPI_START | NILE_SPI_MODE_WAIT_READ) >> 8)
     out IO_NILE_SPI_CNT, ax
 .endm
@@ -183,7 +183,7 @@ nile_disk_read_inner:
     // volatile uint16_t prev_bank = inportw(IO_BANK_2003_ROM1);
     in ax, IO_BANK_2003_ROM1
     push ax
-    mov ax, NILE_SEG_ROM_RX
+    mov ax, NILE_SEG_ROM_SPI_RX
     out IO_BANK_2003_ROM1, ax
 
     __waitread1
@@ -194,13 +194,13 @@ nile_disk_read_inner_loop:
     xor si, si
 
     // wait for read(1) to end
-    ASM_PLATFORM_CALL nile_spi_wait_busy
+    ASM_PLATFORM_CALL nile_spi_wait_ready
     test al, al
     jz nile_disk_read_inner_done
 
-    in al, (IO_NILE_SPI_CNT+1)
-    xor al, (NILE_SPI_BUFFER_IDX >> 8)
-    out (IO_NILE_SPI_CNT+1), al
+    in ax, IO_NILE_SPI_CNT
+    xor ax, NILE_SPI_BUFFER_IDX
+    out IO_NILE_SPI_CNT, ax
 
     // resp[0] == 0xFE?
     cmp byte ptr [si], 0xFE
@@ -208,7 +208,7 @@ nile_disk_read_inner_loop:
     jne nile_disk_read_inner_done
 
     // queue read 256 bytes
-    and ah, 0x78
+    and ah, (NILE_SPI_CFG_MASK >> 8)
     or ax, (0xFF | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
@@ -218,7 +218,7 @@ nile_disk_read_inner_loop_s1:
     js nile_disk_read_inner_loop_s1
 
     // queue read 258 bytes
-    and ax, 0x7800
+    and ax, NILE_SPI_CFG_MASK
     xor ax, (0x101 | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
