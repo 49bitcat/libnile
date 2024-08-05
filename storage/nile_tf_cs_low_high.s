@@ -46,12 +46,11 @@ nile_tf_cs_high:
     test ah, ah
     js 1b
 
+8:
     mov al, 1
 9:
     WF_PLATFORM_RET
 
-
-    .section .fartext.s.libnile, "ax"
     .align 2
     .global nile_tf_cs_low
 nile_tf_cs_low:
@@ -73,8 +72,6 @@ nile_tf_cs_low:
     WF_PLATFORM_CALL nile_tf_wait_ready
     test al, al
     mov al, 0
-    jnz nile_tf_cs_low_ret
-    mov al, 1
-
+    jz 8b
 9:
     WF_PLATFORM_RET
