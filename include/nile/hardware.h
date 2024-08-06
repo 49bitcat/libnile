@@ -50,14 +50,19 @@
 
 #define NILE_IRQ_ENABLE    0x01
 #define NILE_IRQ_SPI       0x02
+#define NILE_IRQ_MCU_RESET 0x80
 #define IO_NILE_IRQ        0xE3
 
 #define NILE_SEG_RAM_MASK  0xF
 #define NILE_SEG_RAM_SHIFT 12
 #define NILE_SEG_ROM_MASK  0x1FF
 #define NILE_SEG_ROM_SHIFT 0
+#define NILE_SEG_ROM0_UNLOCK (1 << 9)
+#define NILE_SEG_ROM1_UNLOCK (1 << 10)
+#define NILE_SEG_SRAM_UNLOCK (1 << 11)
 #define IO_NILE_SEG_MASK   0xE4
 
+#define NILE_SEG_RAM_IPC    14
 #define NILE_SEG_RAM_SPI_TX 15
 #define NILE_SEG_ROM_SPI_RX 510
 #define NILE_SEG_ROM_BOOT   511
