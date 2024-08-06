@@ -143,10 +143,10 @@ DSTATUS disk_status(BYTE pdrv) {
 	return card_state == 0 ? STA_NOINIT : 0;
 }
 
-#define MAX_RETRIES 200
+#define MAX_RETRIES 1000
 
 DSTATUS disk_initialize(BYTE pdrv) {
-	uint8_t retries;
+	uint16_t retries;
 	uint8_t buffer[8];
 
 	if (card_state != 0) return 0;
@@ -196,10 +196,11 @@ DSTATUS disk_initialize(BYTE pdrv) {
 					break;
 				}
 				// Card still idle, try again
+				ws_busywait(1000);
 			}
 
 			// Card init successful?
-			if (retries) {
+			if (card_state) {
 				// Read OCR to check for HC card
 				if (!nile_tf_command(TFC_READ_OCR, 0, 0x95, buffer, 5)) {
 					if (buffer[1] & 0x40) {
@@ -218,32 +219,29 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	// Attempt card init
 	retries = MAX_RETRIES;
 	nile_spi_set_timeout(10);
+	uint8_t init_command = TFC_APP_SEND_OP_COND;
 	while (--retries) {
-		uint8_t init_response = nile_tf_command(TFC_APP_SEND_OP_COND, 0, 0x95, buffer, 1);
+		uint8_t init_response = nile_tf_command(init_command, 0, 0x95, buffer, 1);
 		if (init_response & ~TFC_R1_IDLE) {
 			// Initialization error
-			retries = 0;
-			break;
+			if (init_command == TFC_APP_SEND_OP_COND) {
+				// Try legacy card init command next
+				init_command = TFC_SEND_OP_COND;
+			} else {
+				retries = 0;
+				break;
+			}
 		} else if (!init_response) {
 			// Initialization success
-			card_state = NILE_CARD_TYPE_TF1;
+			if (init_command == TFC_APP_SEND_OP_COND) {
+				card_state = NILE_CARD_TYPE_TF1;
+			} else {
+				card_state = NILE_CARD_TYPE_MMC;
+			}
 			goto card_init_complete;
 		}
-	}
-
-	// Attempt legacy card init
-	retries = MAX_RETRIES;
-	while (--retries) {
-		uint8_t init_response = nile_tf_command(TFC_SEND_OP_COND, 0, 0x95, buffer, 1);
-		if (init_response & ~TFC_R1_IDLE) {
-			// Initialization error
-			retries = 0;
-			break;
-		} else if (!init_response) {
-			// Initialization success
-			card_state = NILE_CARD_TYPE_MMC;
-			goto card_init_complete;
-		}
+		// Card still idle, try again
+		ws_busywait(1000);
 	}
 
 	set_detail_code(3);
@@ -254,17 +252,14 @@ card_init_failed:
 	return STA_NOINIT;
 
 card_init_complete:
-	nile_spi_set_timeout(100);
-	if (!(card_state & NILE_CARD_BLOCK_ADDRESSING)) {
-		// set block size to 512
-		if (nile_tf_command(TFC_SET_BLOCKLEN, 512, 0x95, buffer, 1)) {
-			set_detail_code(4);
-			goto card_init_failed;
-		}
-	}
-
 card_init_complete_hc:
 	nile_spi_set_timeout(100);
+	// Set block size to 512
+	if (nile_tf_command(TFC_SET_BLOCKLEN, 512, 0x95, buffer, 1)) {
+		set_detail_code(4);
+		goto card_init_failed;
+	}
+	
 	// nile_tf_cs_high(); but also changes clocks
 	if (!nile_spi_wait_ready())
 		return false;
