@@ -44,7 +44,7 @@ nile_flash_wait_ready:
 
     call __nile_spi_wait_ready_near
     test al, al
-    jz 9f
+    jz 8f
 
     // Write one byte, store NILE_SPI_CNT value in BX
     mov byte ptr [0x0000], NILE_FLASH_CMD_RDSR1
@@ -57,7 +57,20 @@ nile_flash_wait_ready:
     
     call __nile_spi_wait_ready_near
     test al, al
-    jz 9f
+    jz 8f
+
+    m_pop_sram_bank_state
+
+    // Set DS to 0x3000
+    push 0x3000
+    pop ds
+
+#ifndef LIBNILE_CLOBBER_ROM1
+    in ax, IO_BANK_2003_ROM1
+    push ax
+#endif
+    mov ax, NILE_SEG_ROM_SPI_RX
+    out IO_BANK_2003_ROM1, ax
 
 1:
     // Keep reading bytes until BUSY is clear
@@ -67,7 +80,7 @@ nile_flash_wait_ready:
 
     call __nile_spi_wait_ready_near
     test al, al
-    jz 9f
+    jz 8f
 
     mov ax, bx
     and ah, ~(NILE_SPI_START >> 8)
@@ -76,9 +89,16 @@ nile_flash_wait_ready:
     test byte ptr [0x0000], NILE_FLASH_SR1_BUSY
     jnz 1b
 
-    mov ax, 1
+    mov cx, 1
+    jmp 9f
+8:
+    mov cx, 0
 9:
-    m_pop_sram_bank_state
+
+#ifndef LIBNILE_CLOBBER_ROM1
+    pop ax
+    out IO_BANK_2003_ROM1, ax
+#endif
 
     // Set CS to high
     mov ax, bx
@@ -86,4 +106,5 @@ nile_flash_wait_ready:
     out IO_NILE_SPI_CNT, ax
 
     pop ds
+    mov ax, cx
     WF_PLATFORM_RET

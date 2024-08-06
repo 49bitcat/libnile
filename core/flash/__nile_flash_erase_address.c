@@ -25,7 +25,7 @@
 #include "nile.h"
 #include "utils.h"
 
-bool __nile_flash_cmd_address_wait(uint32_t address) {
+bool __nile_flash_erase_address(uint32_t address) {
     bool result = false;
     uint8_t cmd[4];
     cmd[0] = address >> 24;
@@ -33,12 +33,17 @@ bool __nile_flash_cmd_address_wait(uint32_t address) {
     cmd[2] = address >> 8;
     cmd[3] = address;
 
-    nile_spi_init_flash_cs_low();
-
-    if (!nile_spi_tx_async_block(cmd, 4))
+    if (!nile_flash_write_enable())
         goto error;
 
-    if (!nile_spi_wait_ready())
+    nile_spi_init_flash_cs_low();
+
+    if (!nile_spi_tx_sync_block(cmd, 4))
+        goto error;
+
+    nile_spi_init_flash_cs_high();
+
+    if (!nile_flash_wait_ready())
         goto error;
 
     result = true;

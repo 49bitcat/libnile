@@ -39,6 +39,8 @@ nile_spi_xch:
     push 0x1000
     pop ds
 
+    mov bx, ax
+
     call __nile_spi_wait_ready_near
     test al, al
     jz 9f
@@ -46,7 +48,7 @@ nile_spi_xch:
     m_push_sram_bank_state
     m_open_sram_ram_bank NILE_SEG_RAM_SPI_TX
 
-    mov [0x0000], al
+    mov [0x0000], bl
 
     // uint16_t cnt = inportw(IO_NILE_SPI_CNT);
     in ax, IO_NILE_SPI_CNT

@@ -90,6 +90,30 @@
 #include <stdint.h>
 
 /**
+ * @brief Unlock global SPI flash writing.
+ */
+static inline bool nile_flash_write_unlock_global(void) {
+    bool __nile_flash_cmd(uint8_t cmd);
+    return __nile_flash_cmd(NILE_FLASH_CMD_WREN) && __nile_flash_cmd(NILE_FLASH_CMD_UNLOCK);
+}
+
+/**
+ * @brief Enable SPI flash writing.
+ */
+static inline bool nile_flash_write_enable(void) {
+    bool __nile_flash_cmd(uint8_t cmd);
+    return __nile_flash_cmd(NILE_FLASH_CMD_WREN);
+}
+
+/**
+ * @brief Disable SPI flash writing.
+ */
+static inline bool nile_flash_write_disable(void) {
+    bool __nile_flash_cmd(uint8_t cmd);
+    return __nile_flash_cmd(NILE_FLASH_CMD_WRDI);
+}
+
+/**
  * @brief Wake up SPI flash.
  */
 static inline bool nile_flash_wake(void) {
@@ -142,8 +166,8 @@ bool nile_flash_write_page(const void __far* buffer, uint32_t address, uint16_t 
  * @return false Write timed out.
  */
 static inline bool nile_flash_erase_part(uint8_t type, uint32_t address) {
-    bool __nile_flash_cmd_address_wait(uint32_t address);
-    return __nile_flash_cmd_address_wait((((uint32_t) type) << 24) | address);
+    bool __nile_flash_erase_address(uint32_t address);
+    return __nile_flash_erase_address((((uint32_t) type) << 24) | address);
 }
 
 /**

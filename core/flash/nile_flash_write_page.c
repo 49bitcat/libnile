@@ -36,15 +36,23 @@ bool nile_flash_write_page(const void __far* buffer, uint32_t address, uint16_t 
     cmd[2] = address >> 8;
     cmd[3] = address;
 
+    if (!nile_flash_write_enable())
+        goto error;
+
     nile_spi_init_flash_cs_low();
 
     if (!nile_spi_tx_async_block(cmd, 4))
         goto error;
 
-    if (!nile_spi_tx_async_block(buffer, size))
+    if (!nile_spi_tx_sync_block(buffer, size))
         goto error;
 
     if (!nile_spi_wait_ready())
+        goto error;
+
+    nile_spi_init_flash_cs_high();
+
+    if (!nile_flash_wait_ready())
         goto error;
 
     result = true;
