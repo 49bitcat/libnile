@@ -20,14 +20,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_H__
-#define __NILE_H__
+#ifndef __NILE_IPC_H__
+#define __NILE_IPC_H__
 
 #include <wonderful.h>
-#include "nile/hardware.h"
-#include "nile/core.h"
-#include "nile/spi.h"
-#include "nile/flash.h"
-#include "nile/ipc.h"
 
-#endif /* __NILE_H__ */
+#ifndef __ASSEMBLER__
+
+typedef struct __attribute__((packed)) {
+	uint8_t boot_entrypoint;
+	uint8_t storage_state;
+
+	uint8_t unused[(0x200 - 0xD8) - 0x02];
+
+	struct {
+		union {
+			uint16_t ax, bx, cx, dx;
+			uint16_t sp, bp, si, di;
+			uint16_t ds, es, ss, flags;
+		};
+		uint16_t data[12];
+	} boot_regs;
+	uint8_t boot_io[0xC0];
+} nile_ipc_t;
+
+#define MEM_NILE_IPC ((nile_ipc_t __far*) MK_FP(0x1000, 0x0000))
+
+#endif /* __ASSEMBLER__ */
+
+#endif /* __NILE_IPC_H__ */

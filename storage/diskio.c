@@ -29,7 +29,7 @@
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
-#define USE_MULTI_TRANSFER_WRITES
+// #define USE_MULTI_TRANSFER_WRITES
 
 #include "tf.h"
 
@@ -40,7 +40,7 @@
 #define NILE_CARD_TYPE_TF2 3
 #define NILE_CARD_BLOCK_ADDRESSING 0x80
 
-uint8_t card_state = 0;
+uint8_t card_state;
 
 #ifdef LIBNILE_EXPOSE_DISKIO_DETAIL_CODE
 uint8_t diskio_detail_code;
@@ -148,6 +148,13 @@ DSTATUS disk_status(BYTE pdrv) {
 DSTATUS disk_initialize(BYTE pdrv) {
 	uint16_t retries;
 	uint8_t buffer[8];
+
+	{
+		uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
+		outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+		card_state = MEM_NILE_IPC->storage_state;
+		outportw(IO_BANK_2003_RAM, prev_sram_bank);
+	}
 
 	if (card_state != 0) return 0;
 
@@ -259,14 +266,21 @@ card_init_complete_hc:
 		set_detail_code(4);
 		goto card_init_failed;
 	}
-	
+
+	{
+		uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
+		outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+		MEM_NILE_IPC->storage_state = card_state;
+		outportw(IO_BANK_2003_RAM, prev_sram_bank);
+	}
+
 	// nile_tf_cs_high(); but also changes clocks
 	if (!nile_spi_wait_ready())
-		return false;
+		return 0;
 	outportb(IO_NILE_POW_CNT, powcnt | NILE_POW_CLOCK);
 	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_FAST);
 	if (!nile_spi_rx_async(1, NILE_SPI_MODE_READ))
-		return false;
+		return 0;
 	return 0;
 }
 
