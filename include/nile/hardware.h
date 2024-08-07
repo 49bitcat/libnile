@@ -57,9 +57,9 @@
 #define NILE_SEG_RAM_SHIFT 12
 #define NILE_SEG_ROM_MASK  0x1FF
 #define NILE_SEG_ROM_SHIFT 0
-#define NILE_SEG_ROM0_UNLOCK (1 << 9)
-#define NILE_SEG_ROM1_UNLOCK (1 << 10)
-#define NILE_SEG_SRAM_UNLOCK (1 << 11)
+#define NILE_SEG_ROM0_LOCK (1 << 9)
+#define NILE_SEG_ROM1_LOCK (1 << 10)
+#define NILE_SEG_SRAM_LOCK (1 << 11)
 #define IO_NILE_SEG_MASK   0xE4
 
 #define NILE_SEG_RAM_IPC    14
