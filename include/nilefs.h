@@ -23,8 +23,12 @@
 #ifndef __NILEFS_H__
 #define __NILEFS_H__
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <wonderful.h>
 #include "nilefs/ff.h"
 #include "nilefs/diskio.h"
+
+void nile_tf_load_state_from_ipc(void);
 
 #endif /* __NILEFS_H__ */

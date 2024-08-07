@@ -145,17 +145,18 @@ DSTATUS disk_status(BYTE pdrv) {
 
 #define MAX_RETRIES 1000
 
+void nile_tf_load_state_from_ipc(void) {
+	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
+	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+	card_state = MEM_NILE_IPC->storage_state;
+	outportw(IO_BANK_2003_RAM, prev_sram_bank);
+}
+
 DSTATUS disk_initialize(BYTE pdrv) {
 	uint16_t retries;
 	uint8_t buffer[8];
 
-	{
-		uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
-		outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
-		card_state = MEM_NILE_IPC->storage_state;
-		outportw(IO_BANK_2003_RAM, prev_sram_bank);
-	}
-
+	nile_tf_load_state_from_ipc();
 	if (card_state != 0) return 0;
 
 	card_state = 0;

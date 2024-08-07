@@ -26,6 +26,8 @@
 #include <wonderful.h>
 
 #ifndef __ASSEMBLER__
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef struct __attribute__((packed)) {
 	uint8_t boot_entrypoint;
