@@ -23,12 +23,20 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
-bool __nile_flash_cmd(uint8_t cmd) {
-    bool result = false;
-    nile_spi_init_flash_cs_low();
-    result = !(nile_spi_xch(cmd) & NILE_SPI_XCH_ERROR_MASK);
-    nile_spi_init_flash_cs_high();
-    return result;
+bool nile_mcu_boot_wait_ack(void) {
+    uint16_t retries = 0;
+    
+    while (--retries) {
+        uint16_t result = nile_spi_xch(0x00);
+        if (result & NILE_SPI_XCH_ERROR_MASK || result == NILE_MCU_BOOT_NACK) {
+            // SPI timeout, or NACK
+            return false;
+        } else if (result == NILE_MCU_BOOT_ACK) {
+            return !(nile_spi_xch(NILE_MCU_BOOT_ACK) & NILE_SPI_XCH_ERROR_MASK);
+        }
+    }
+
+    // SPI works fine, but ACK/NACK not received
+    return false;
 }

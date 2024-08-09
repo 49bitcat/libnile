@@ -43,6 +43,7 @@ nile_spi_xch:
 
     call __nile_spi_wait_ready_near
     test al, al
+    mov ah, 0xFF
     jz 9f
 
     m_push_sram_bank_state
@@ -65,6 +66,7 @@ nile_spi_xch:
 
     call __nile_spi_wait_ready_near
     test al, al
+    mov ah, 0xFF
     jz 9f
 
 #ifndef LIBNILE_CLOBBER_ROM1
@@ -81,12 +83,14 @@ nile_spi_xch:
     xor al, (NILE_SPI_BUFFER_IDX >> 8)
     out (IO_NILE_SPI_CNT+1), al
 
+    xor ax, ax
     mov al, [0x0000]
 
 #ifndef LIBNILE_CLOBBER_ROM1
     // outportw(IO_BANK_2003_ROM1, prev_bank);
-    mov ax, bx
+    xchg ax, bx
     out IO_BANK_2003_ROM1, ax
+    xchg ax, bx
 #endif
 
 9:

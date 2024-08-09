@@ -28,6 +28,7 @@
 #include "nile/core.h"
 #include "nile/spi.h"
 #include "nile/flash.h"
+#include "nile/mcu.h"
 #include "nile/ipc.h"
 
 #endif /* __NILE_H__ */

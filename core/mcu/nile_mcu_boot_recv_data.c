@@ -25,10 +25,12 @@
 #include "nile.h"
 #include "utils.h"
 
-bool __nile_flash_cmd(uint8_t cmd) {
-    bool result = false;
-    nile_spi_init_flash_cs_low();
-    result = !(nile_spi_xch(cmd) & NILE_SPI_XCH_ERROR_MASK);
-    nile_spi_init_flash_cs_high();
-    return result;
+uint16_t nile_mcu_boot_recv_data(void __far* buffer, uint16_t buflen, uint8_t flags) {
+    nile_spi_init_mcu_cs_low();
+
+    uint16_t len = (!(flags & NILE_MCU_BOOT_FLAG_SIZE)) ? buflen : (nile_spi_xch(0x00) + 1);
+    if (len > buflen)
+        len = buflen;
+
+    return nile_spi_rx_sync_block(buffer, len, NILE_SPI_MODE_READ);
 }

@@ -140,7 +140,8 @@ bool nile_spi_xch_block(void __far* buf, uint16_t size);
  * @return true Transfer successful.
  * @return false Transfer failed.
  */
-bool nile_spi_xch(uint8_t value);
+uint16_t nile_spi_xch(uint8_t value);
+#define NILE_SPI_XCH_ERROR_MASK 0xFF00
 
 #endif /* __ASSEMBLER__ */
 

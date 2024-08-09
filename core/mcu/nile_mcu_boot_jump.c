@@ -23,12 +23,19 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
-bool __nile_flash_cmd(uint8_t cmd) {
-    bool result = false;
-    nile_spi_init_flash_cs_low();
-    result = !(nile_spi_xch(cmd) & NILE_SPI_XCH_ERROR_MASK);
-    nile_spi_init_flash_cs_high();
-    return result;
+bool nile_mcu_boot_jump(uint32_t address) {
+    uint8_t buffer[4];
+    buffer[0] = address >> 24;
+    buffer[1] = address >> 16;
+    buffer[2] = address >> 8;
+    buffer[3] = address;
+
+    if (!nile_mcu_boot_send_cmd(NILE_MCU_BOOT_JUMP))
+        return false;
+
+    if (!nile_mcu_boot_send_data(buffer, 4, NILE_MCU_BOOT_FLAG_CHECKSUM))
+        return false;
+
+    return true;
 }

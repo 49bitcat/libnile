@@ -23,12 +23,18 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
-bool __nile_flash_cmd(uint8_t cmd) {
-    bool result = false;
-    nile_spi_init_flash_cs_low();
-    result = !(nile_spi_xch(cmd) & NILE_SPI_XCH_ERROR_MASK);
-    nile_spi_init_flash_cs_high();
-    return result;
+uint16_t nile_mcu_boot_get_id(void) {
+    uint8_t buffer[2];
+
+    if (!nile_mcu_boot_send_cmd(NILE_MCU_BOOT_GET_ID))
+        return 0;
+
+    if (!nile_mcu_boot_recv_data(buffer, 2, NILE_MCU_BOOT_FLAG_SIZE))
+        return 0;
+    
+    if (!nile_mcu_boot_wait_ack())
+        return 0;
+
+    return (buffer[0] << 8) | buffer[1];
 }

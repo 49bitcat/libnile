@@ -23,12 +23,11 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
-bool __nile_flash_cmd(uint8_t cmd) {
-    bool result = false;
-    nile_spi_init_flash_cs_low();
-    result = !(nile_spi_xch(cmd) & NILE_SPI_XCH_ERROR_MASK);
-    nile_spi_init_flash_cs_high();
-    return result;
+static inline void nile_spi_init_mcu_cs_high(void) {
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_CLOCK_CART);
+}
+
+static inline void nile_spi_init_mcu_cs_low(void) {
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU);
 }
