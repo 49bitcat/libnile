@@ -53,11 +53,11 @@ nile_spi_wait_ready:
     dec dx
     jnz 1b
 
-    // timeout, AL = 0x80
+    // timeout, AX = 0x0080
     xor ax, ax
     ret
 
 9:
-    // success, AL = 0x00
+    // success, AX = 0x0000
     inc ax
     ret

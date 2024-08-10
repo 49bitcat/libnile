@@ -64,16 +64,17 @@ nile_spi_xch:
     push 0x3000
     pop ds
 
-    call __nile_spi_wait_ready_near
-    test al, al
-    mov ah, 0xFF
-    jz 9f
-
 #ifndef LIBNILE_CLOBBER_ROM1
     // volatile uint16_t prev_bank = inportw(IO_BANK_2003_ROM1);
     in ax, IO_BANK_2003_ROM1
     mov bx, ax
 #endif
+
+    call __nile_spi_wait_ready_near
+    test al, al
+    mov ah, 0xFF
+    jz 9f
+
     // outportw(IO_BANK_2003_ROM1, NILE_SEG_ROM_SPI_RX);
     mov ax, NILE_SEG_ROM_SPI_RX
     out IO_BANK_2003_ROM1, ax

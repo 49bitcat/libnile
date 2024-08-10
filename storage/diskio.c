@@ -255,7 +255,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	set_detail_code(3);
 card_init_failed:
 	// Power off card
-	outportb(IO_NILE_POW_CNT, 0);
+	outportb(IO_NILE_POW_CNT, powcnt & ~NILE_POW_TF);
 	outportw(IO_NILE_SPI_CNT, 0);
 	return STA_NOINIT;
 

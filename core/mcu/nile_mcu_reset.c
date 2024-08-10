@@ -38,11 +38,11 @@ bool nile_mcu_reset(bool to_bootloader) {
     outportw(IO_NILE_SPI_CNT, NILE_SPI_START | NILE_SPI_MODE_WRITE | NILE_SPI_CLOCK_CART | NILE_SPI_DEV_NONE | (MCU_RESET_WAIT_TIME - 1));
 
     // Wait a few cycles to trigger RESET.
-    uint8_t irq = inportb(IO_NILE_IRQ) & ~NILE_IRQ_MCU_RESET;
+    uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
     ws_busywait(1000);
-    outportb(IO_NILE_IRQ, irq);
+    outportb(IO_NILE_POW_CNT, pow);
     ws_busywait(1000);
-    outportb(IO_NILE_IRQ, irq | NILE_IRQ_MCU_RESET);
+    outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
 
     if (!nile_spi_wait_ready())
         return false;

@@ -46,11 +46,11 @@
 
 #define NILE_POW_CLOCK     0x01
 #define NILE_POW_TF        0x02
+#define NILE_POW_MCU_RESET 0x80
 #define IO_NILE_POW_CNT    0xE2
 
 #define NILE_IRQ_ENABLE    0x01
 #define NILE_IRQ_SPI       0x02
-#define NILE_IRQ_MCU_RESET 0x80
 #define IO_NILE_IRQ        0xE3
 
 #define NILE_SEG_RAM_MASK  0xF

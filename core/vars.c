@@ -24,7 +24,7 @@
 #include <ws.h>
 #include "nile.h"
 
-uint16_t __nile_spi_timeout;
+uint16_t __nile_spi_timeout = 100;
 
 void nile_spi_set_timeout(uint16_t ms) {
     __nile_spi_timeout = ms;
