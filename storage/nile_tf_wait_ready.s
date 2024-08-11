@@ -23,6 +23,7 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
+#include "../core/macros.inc"
 
 	.arch	i186
 	.code16
@@ -50,10 +51,8 @@ nile_tf_wait_ready:
     xor cx, cx
     xor si, si
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, ah
-    js 1b
+    m_nile_spi_wait_ready_ax_no_timeout
+
     and ax, 0x7800
     or ah, (NILE_SPI_MODE_READ >> 8)
     out IO_NILE_SPI_CNT, ax
@@ -63,10 +62,7 @@ nile_tf_wait_ready:
     or ah, (NILE_SPI_START >> 8)
     out IO_NILE_SPI_CNT, ax
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, (NILE_SPI_BUSY >> 8)
-    jnz 1b
+    m_nile_spi_wait_ready_ax_no_timeout
 
     xor ah, (NILE_SPI_BUFFER_IDX >> 8)
     out IO_NILE_SPI_CNT, ax

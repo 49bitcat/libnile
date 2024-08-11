@@ -23,6 +23,7 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
+#include "../core/macros.inc"
 
 	.arch	i186
 	.code16
@@ -100,10 +101,7 @@ nile_disk_read_inner_loop:
     or ax, (0xFF | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, ah
-    js 1b
+    m_nile_spi_wait_ready_ax_no_timeout
 
     // queue read 258 bytes
     and ax, NILE_SPI_CFG_MASK
@@ -114,10 +112,7 @@ nile_disk_read_inner_loop:
     call __read256
     xor si, si
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, ah
-    js 1b
+    m_nile_spi_wait_ready_ax_no_timeout
 
     xor ah, (NILE_SPI_BUFFER_IDX >> 8)
     out IO_NILE_SPI_CNT, ax

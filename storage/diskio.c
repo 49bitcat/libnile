@@ -162,6 +162,9 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	card_state = 0;
 	nile_spi_set_timeout(1000);
 
+	if (!nile_spi_wait_ready())
+		return STA_NOINIT;
+
 	set_detail_code(0);
 	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART);
 	nile_tf_cs_high();

@@ -54,3 +54,17 @@
     mov ax, \bank
     out IO_BANK_2003_RAM, ax
 .endm
+
+.macro m_nile_spi_wait_ready_al_no_timeout
+1:
+    in al, (IO_NILE_SPI_CNT+1)
+    test al, al
+    js 1b
+.endm
+
+.macro m_nile_spi_wait_ready_ax_no_timeout
+1:
+    in ax, IO_NILE_SPI_CNT
+    test ah, ah
+    js 1b
+.endm

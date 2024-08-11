@@ -23,6 +23,7 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
+#include "../core/macros.inc"
 
 	.arch	i186
 	.code16
@@ -41,10 +42,7 @@ nile_tf_cs_high:
     or ah, ((NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS high
     out IO_NILE_SPI_CNT, ax
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, ah
-    js 1b
+    m_nile_spi_wait_ready_al_no_timeout
 
 8:
     mov al, 1
@@ -63,10 +61,8 @@ nile_tf_cs_low:
     or ah, ((NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS low
     out IO_NILE_SPI_CNT, ax
 
-1:
-    in ax, IO_NILE_SPI_CNT
-    test ah, ah
-    js 1b
+    // Already done by nile_tf_wait_ready
+    // m_nile_spi_wait_ready_al_no_timeout
 
     xor ax, ax
     WF_PLATFORM_CALL nile_tf_wait_ready
