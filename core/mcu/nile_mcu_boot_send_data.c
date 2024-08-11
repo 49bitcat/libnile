@@ -23,12 +23,9 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
 bool nile_mcu_boot_send_data(const void __far *buffer, uint16_t len, uint8_t flags) {
     uint8_t checksum = 0x00;
-
-    nile_spi_init_mcu_cs_low();
 
     if (flags & NILE_MCU_BOOT_FLAG_SIZE) {
         checksum = len - 1;
@@ -40,8 +37,12 @@ bool nile_mcu_boot_send_data(const void __far *buffer, uint16_t len, uint8_t fla
         return false;
 
     if (flags & NILE_MCU_BOOT_FLAG_CHECKSUM) {
-        for (uint16_t i = 0; i < len; i++) {
-            checksum ^= ((const uint8_t __far*) buffer)[i];
+        if (len == 1) {
+            checksum = ~((const uint8_t __far*) buffer)[0];
+        } else {
+            for (uint16_t i = 0; i < len; i++) {
+                checksum ^= ((const uint8_t __far*) buffer)[i];
+            }
         }
         if (nile_spi_xch(checksum) & NILE_SPI_XCH_ERROR_MASK)
             return false;

@@ -26,29 +26,41 @@
 #include "nile.h"
 
 /* 384 KHz / (48 * 8) => 48 bytes is 1ms */
-#define MCU_RESET_WAIT_TIME (48 * 4)
+#define MCU_RESET_WAIT_TIME (48 * 3)
 
 bool nile_mcu_reset(bool to_bootloader) {
     if (!nile_spi_wait_ready())
         return false;
 
-    // Hack! SPI output is connected to BOOT0.
+    // SPI output is connected to BOOT0. For booting from flash, pull low.
+    uint8_t prev_flash = inportb(IO_CART_FLASH);
+    uint16_t prev_bank = inportw(IO_BANK_2003_RAM);
+    outportb(IO_CART_FLASH, 0);
+    outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_SPI_TX);
+
     outportw(IO_NILE_SPI_CNT, NILE_SPI_BUFFER_IDX);
     memset(MEM_NILE_SPI_BUFFER, to_bootloader ? 0xFF : 0x00, MCU_RESET_WAIT_TIME);
-    outportw(IO_NILE_SPI_CNT, NILE_SPI_START | NILE_SPI_MODE_WRITE | NILE_SPI_CLOCK_CART | NILE_SPI_DEV_NONE | (MCU_RESET_WAIT_TIME - 1));
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_START | NILE_SPI_MODE_WRITE | NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU | (MCU_RESET_WAIT_TIME - 1));
 
-    // Wait a few cycles to trigger RESET.
+    outportb(IO_CART_FLASH, prev_flash);
+    outportw(IO_BANK_2003_RAM, prev_bank);
+
+    ws_busywait(100);
+
+    // After some time, pull RESET low, then high.
     uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
-    ws_busywait(1000);
     outportb(IO_NILE_POW_CNT, pow);
-    ws_busywait(1000);
+    ws_busywait(500);
     outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
 
+    // Wait for the BOOT0 send to end.
     if (!nile_spi_wait_ready())
         return false;
 
+    ws_busywait(20000);
+
+    // If booting to bootloader, handle ACK.
     if (to_bootloader) {
-        ws_busywait(5000);
         outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_MCU | NILE_SPI_CLOCK_CART);
         nile_spi_xch(NILE_MCU_BOOT_START);
         return nile_mcu_boot_wait_ack();

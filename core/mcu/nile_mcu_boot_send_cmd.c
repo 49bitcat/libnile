@@ -23,17 +23,19 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
 bool nile_mcu_boot_send_cmd(uint8_t cmd) {
     uint8_t buffer[3];
     buffer[0] = NILE_MCU_BOOT_START;
     buffer[1] = cmd;
-    buffer[2] = cmd ^ 0xFF;
+    buffer[2] = ~cmd;
 
-    nile_spi_init_mcu_cs_low();
-
+    if (!nile_spi_wait_ready())
+        return false;
+    
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU);
     if (!nile_spi_tx_async_block(buffer, 3))
         return false;
+
     return nile_mcu_boot_wait_ack();
 }

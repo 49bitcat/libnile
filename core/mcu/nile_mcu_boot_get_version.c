@@ -31,6 +31,10 @@ uint8_t nile_mcu_boot_get_version(void) {
     uint16_t result = nile_spi_xch(0x00);
     if (result & NILE_SPI_XCH_ERROR_MASK)
         return 0x00;
+    
+    result = nile_spi_xch(0x00);
+    if (result & NILE_SPI_XCH_ERROR_MASK)
+        return 0x00;
 
     if (!nile_mcu_boot_wait_ack())
         return 0x00;

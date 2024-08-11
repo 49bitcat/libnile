@@ -23,14 +23,23 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
-#include "utils.h"
 
 uint16_t nile_mcu_boot_recv_data(void __far* buffer, uint16_t buflen, uint8_t flags) {
-    nile_spi_init_mcu_cs_low();
+    // Receive dummy byte
+    uint16_t xch = nile_spi_xch(0x00);
+    if (xch & NILE_SPI_XCH_ERROR_MASK)
+        return 0;
 
-    uint16_t len = (!(flags & NILE_MCU_BOOT_FLAG_SIZE)) ? buflen : (nile_spi_xch(0x00) + 1);
-    if (len > buflen)
-        len = buflen;
+    // Receive size
+    uint16_t len = buflen;
+    if (flags & NILE_MCU_BOOT_FLAG_SIZE) {
+        xch = nile_spi_xch(0x00);
+        if (xch & NILE_SPI_XCH_ERROR_MASK)
+            return 0;
+        xch++;
+        len = xch > len ? len : xch;
+    }
 
+    // Receive data
     return nile_spi_rx_sync_block(buffer, len, NILE_SPI_MODE_READ);
 }

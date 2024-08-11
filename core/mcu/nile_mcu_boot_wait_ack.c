@@ -27,16 +27,20 @@
 bool nile_mcu_boot_wait_ack(void) {
     uint16_t retries = 0;
     
-    while (--retries) {
+    // Skip first byte
+    nile_spi_xch(0x00);
+    
+    while (true) {
         uint16_t result = nile_spi_xch(0x00);
-        if (result & NILE_SPI_XCH_ERROR_MASK || result == NILE_MCU_BOOT_NACK) {
-            // SPI timeout, or NACK
+        if (result & NILE_SPI_XCH_ERROR_MASK || !(--retries)) {
+            // SPI timeout
+            return false;
+        } else if (result == NILE_MCU_BOOT_NACK) {
+            nile_spi_xch(NILE_MCU_BOOT_ACK);
             return false;
         } else if (result == NILE_MCU_BOOT_ACK) {
-            return !(nile_spi_xch(NILE_MCU_BOOT_ACK) & NILE_SPI_XCH_ERROR_MASK);
+            nile_spi_xch(NILE_MCU_BOOT_ACK);
+            return true;
         }
     }
-
-    // SPI works fine, but ACK/NACK not received
-    return false;
 }

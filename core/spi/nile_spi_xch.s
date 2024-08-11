@@ -91,7 +91,7 @@ nile_spi_xch:
     // outportw(IO_BANK_2003_ROM1, prev_bank);
     xchg ax, bx
     out IO_BANK_2003_ROM1, ax
-    xchg ax, bx
+    mov ax, bx
 #endif
 
 9:
