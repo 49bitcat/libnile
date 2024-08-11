@@ -26,19 +26,30 @@
 #include "nile.h"
 
 /* 384 KHz / (48 * 8) => 48 bytes is 1ms */
-#define MCU_RESET_WAIT_TIME (48 * 3)
+#define MCU_RESET_WAIT_TIME (48 * 2)
 
 bool nile_mcu_reset(bool to_bootloader) {
     if (!nile_spi_wait_ready())
         return false;
 
+#ifdef LIBNILE_PCB_REV4
+    // On this revision, SPI *input* is connected to BOOT0 with a pull-down resistor.
+    // As a workaround, an FPGA patch ensures it's pulled high when all devices are deselected.
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_CLOCK_CART | (to_bootloader ? NILE_SPI_DEV_NONE : NILE_SPI_DEV_MCU));
+
+    // Pull RESET low, then high.
+    uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
+    outportb(IO_NILE_POW_CNT, pow);
+    ws_busywait(500);
+    outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
+#else
     // SPI output is connected to BOOT0. For booting from flash, pull low.
     uint8_t prev_flash = inportb(IO_CART_FLASH);
     uint16_t prev_bank = inportw(IO_BANK_2003_RAM);
     outportb(IO_CART_FLASH, 0);
     outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_SPI_TX);
 
-    outportw(IO_NILE_SPI_CNT, NILE_SPI_BUFFER_IDX);
+    outportw(IO_NILE_SPI_CNT, NILE_SPI_BUFFER_IDX | NILE_SPI_CLOCK_CART);
     memset(MEM_NILE_SPI_BUFFER, to_bootloader ? 0xFF : 0x00, MCU_RESET_WAIT_TIME);
     outportw(IO_NILE_SPI_CNT, NILE_SPI_START | NILE_SPI_MODE_WRITE | NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU | (MCU_RESET_WAIT_TIME - 1));
 
@@ -47,7 +58,7 @@ bool nile_mcu_reset(bool to_bootloader) {
 
     ws_busywait(100);
 
-    // After some time, pull RESET low, then high.
+    // Pull RESET low, then high.
     uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
     outportb(IO_NILE_POW_CNT, pow);
     ws_busywait(500);
@@ -56,8 +67,9 @@ bool nile_mcu_reset(bool to_bootloader) {
     // Wait for the BOOT0 send to end.
     if (!nile_spi_wait_ready())
         return false;
+#endif
 
-    ws_busywait(20000);
+    ws_busywait(10000);
 
     // If booting to bootloader, handle ACK.
     if (to_bootloader) {
