@@ -31,18 +31,16 @@ bool nile_mcu_boot_send_data(const void __far *buffer, uint16_t len, uint8_t fla
         checksum = len - 1;
         if (nile_spi_xch(checksum) & NILE_SPI_XCH_ERROR_MASK)
             return false;
+    } else if (len == 1) {
+        checksum = 0xFF;
     }
 
     if (!nile_spi_tx_async_block(buffer, len))
         return false;
 
     if (flags & NILE_MCU_BOOT_FLAG_CHECKSUM) {
-        if (len == 1) {
-            checksum = ~((const uint8_t __far*) buffer)[0];
-        } else {
-            for (uint16_t i = 0; i < len; i++) {
-                checksum ^= ((const uint8_t __far*) buffer)[i];
-            }
+        for (uint16_t i = 0; i < len; i++) {
+            checksum ^= ((const uint8_t __far*) buffer)[i];
         }
         if (nile_spi_xch(checksum) & NILE_SPI_XCH_ERROR_MASK)
             return false;

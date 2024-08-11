@@ -28,15 +28,13 @@
 bool nile_mcu_boot_erase_memory(uint16_t sector_address, uint16_t sector_count) {
     uint8_t buffer[2];
     uint8_t checksum = 0x00;
-
-    if (sector_count < 0xFFF0)
-        sector_count--;
+    uint16_t sent_sector_count = sector_count < 0xFFF0 ? (sector_count - 1) : sector_count;
 
     if (!nile_mcu_boot_send_cmd(NILE_MCU_BOOT_ERASE_MEMORY))
         return false;
 
-    buffer[0] = sector_count >> 8;
-    buffer[1] = sector_count;
+    buffer[0] = sent_sector_count >> 8;
+    buffer[1] = sent_sector_count;
 
     if (!nile_mcu_boot_send_data(buffer, 2, NILE_MCU_BOOT_FLAG_CHECKSUM))
         return false;
@@ -55,10 +53,7 @@ bool nile_mcu_boot_erase_memory(uint16_t sector_address, uint16_t sector_count) 
         buffer[0] = checksum;
         if (!nile_spi_tx_async_block(buffer, 1))
             return false;
-
-        if (!nile_mcu_boot_wait_ack())
-            return false;
     }
 
-    return true;
+    return nile_mcu_boot_wait_ack();
 }
