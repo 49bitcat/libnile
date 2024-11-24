@@ -2,6 +2,7 @@
 /  Configurations of FatFs Module
 /---------------------------------------------------------------------------*/
 
+#include <wonderful.h>
 #define FFCONF_DEF	80286	/* Revision ID */
 
 /*---------------------------------------------------------------------------/
@@ -405,5 +406,6 @@
 */
 #define FF_WF_DATA_BUFFER_ADDRESS_SPACE __far
 #define FF_WF_FILINFO_ADDRESS_SPACE __far
+#define FF_WF_CONST_ADDRESS_SPACE __wf_rom
 
 /*--- End of configuration options ---*/
