@@ -40,8 +40,8 @@ typedef struct __attribute__((packed)) {
 	uint8_t tf_card_status;
 	uint8_t boot_entrypoint;
 	uint8_t reserved_1[4];
-	struct {
-		union {
+	union {
+		struct {
 			uint16_t ax, bx, cx, dx;
 			uint16_t sp, bp, si, di;
 			uint16_t ds, es, ss, flags;
@@ -53,6 +53,10 @@ typedef struct __attribute__((packed)) {
 
 	uint8_t user_area[288];
 } nile_ipc_t;
+
+#if __STDC_VERSION__ >= 201112L
+_Static_assert(sizeof(nile_ipc_t) == 512, "nile_ipc_t size not equal to 512");
+#endif
 
 #define MEM_NILE_IPC ((nile_ipc_t __far*) MK_FP(0x1000, 0x0000))
 
