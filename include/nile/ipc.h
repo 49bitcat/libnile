@@ -26,20 +26,56 @@
 #include <wonderful.h>
 
 #define NILE_IPC_MAGIC 0xAA55
-#define NILE_IPC_BOOT_FFFF_0000 0
-#define NILE_IPC_BOOT_4000_0000 1
-#define NILE_IPC_BOOT_4000_0010 2
 
 #ifndef __ASSEMBLER__
 
 #include <stdbool.h>
 #include <stdint.h>
 
+#define NILE_IPC_TF_BLOCK 0x80
+#define NILE_IPC_TF_TYPE(v) ((v) & 0x7F)
+#define NILE_IPC_TF_TYPE_MMC    1
+#define NILE_IPC_TF_TYPE_MMC_HC 2
+#define NILE_IPC_TF_TYPE_TF     3
+#define NILE_IPC_TF_TYPE_TF_HC  4
+
+/**
+ * @brief FFFF:0000 - the standard entrypoint.
+ */
+#define NILE_IPC_BOOT_FFFF_0000 0
+/**
+ * @brief 4000:0000 - the first alternate entrypoint.
+ */
+#define NILE_IPC_BOOT_4000_0000 1
+/**
+ * @brief 4000:0010 - the second alternate entrypoint.
+ * Also used by the Pocket Challenge V2.
+ */
+#define NILE_IPC_BOOT_4000_0010 2
+
 typedef struct __attribute__((packed)) {
+	/**
+	 * @brief Magic value. If set to NILE_IPC_MAGIC, the IPC area has been initialized by IPL1.
+	 * @see NILE_IPC_MAGIC
+	 */
 	uint16_t magic;
+	/**
+	 * @brief TF card status.
+	 * @see NILE_IPC_TF_BLOCK
+	 * @see NILE_IPC_TF_TYPE
+	 */
 	uint8_t tf_card_status;
+	/**
+	 * @brief The entrypoint the cartridge was booted from.
+	 * @see NILE_IPC_BOOT_FFFF_0000
+	 * @see NILE_IPC_BOOT_4000_0000
+	 * @see NILE_IPC_BOOT_4000_0010
+	 */
 	uint8_t boot_entrypoint;
 	uint8_t reserved_1[4];
+	/**
+	 * @brief The register state at cartridge boot.
+	 */
 	union {
 		struct {
 			uint16_t ax, bx, cx, dx;
@@ -48,6 +84,9 @@ typedef struct __attribute__((packed)) {
 		};
 		uint16_t data[12];
 	} boot_regs;
+	/**
+	 * @brief The I/O port state at cartridge boot.
+	 */
 	uint8_t boot_io[0xB8];
 	uint8_t reserved_2[8];
 

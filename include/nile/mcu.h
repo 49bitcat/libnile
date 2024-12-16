@@ -59,18 +59,82 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * @brief Reset the MCU.
+ * 
+ * @param to_bootloader If true, the MCU is restarted into bootloader mode, allowing use of the nile_mcu_boot functions. If false, the MCU is restarted into the existing firmware flashed on it.
+ * @return true Reset successful.
+ * @return false Reset failed.
+ */
 bool nile_mcu_reset(bool to_bootloader);
+
 bool nile_mcu_boot_wait_ack(void);
 bool nile_mcu_boot_send_cmd(uint8_t cmd);
 bool nile_mcu_boot_send_data(const void __far *buffer, uint16_t len, uint8_t flags);
 uint16_t nile_mcu_boot_recv_data(void __far* buffer, uint16_t buflen, uint8_t flags);
+
+/**
+ * @brief Get the version of the SPI protocol used.
+ * More information is available in the Application Note AN4286.
+ */
 uint8_t nile_mcu_boot_get_version(void);
+
+/**
+ * @brief Get the chip ID.
+ * More information is available in the Application Note AN4286.
+ */
 uint16_t nile_mcu_boot_get_id(void);
+
+/**
+ * @brief Request bytes from the MCU's address space.
+ * 
+ * @param address MCU address to read data from.
+ * @param buffer Buffer to read data to.
+ * @param buflen Amount of data to read, in bytes (1 - 256).
+ */
 bool nile_mcu_boot_read_memory(uint32_t address, void __far* buffer, uint16_t buflen);
+
+/**
+ * @brief Request that the MCU branch to a specific address in memory.
+ * 
+ * @param address Address to branch to.
+ */
 bool nile_mcu_boot_jump(uint32_t address);
+
+/**
+ * @brief Write bytes to the MCU's address space (RAM or flash memory).
+ * 
+ * @param address MCU address to write data to.
+ * @param buffer Buffer to write data from.
+ * @param buflen Amount of data to write, in bytes (1 - 256).
+ */
 bool nile_mcu_boot_write_memory(uint32_t address, const void __far* buffer, uint16_t buflen);
+
+/**
+ * @brief Erase pages of the MCU's flash memory.
+ * 
+ * @param sector_address The starting page to erase.
+ * @param sector_count The number of pages to erase.
+ * @see NILE_MCU_FLASH_PAGE_SIZE
+ */
 bool nile_mcu_boot_erase_memory(uint16_t sector_address, uint16_t sector_count);
 
+/**
+ * @brief Erase all of the MCU's flash memory.
+ */
+static inline bool nile_mcu_boot_erase_all_memory(void) {
+    return nile_mcu_boot_erase_memory(0, NILE_MCU_BOOT_ERASE_ALL_SECTORS);
+}
+
+/**
+ * @brief Receive the response of a "native protocol" MCU command.
+ *
+ * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
+ * 
+ * @param buffer Buffer to receive response to.
+ * @param buflen The size of the buffer.
+ * @return uint16_t The number of bytes received.
+ */
 uint16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen);
 
 #endif /* __ASSEMBLER__ */
