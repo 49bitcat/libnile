@@ -148,7 +148,7 @@ DSTATUS disk_status(BYTE pdrv) {
 void nile_tf_load_state_from_ipc(void) {
 	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
 	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
-	card_state = MEM_NILE_IPC->storage_state;
+	card_state = MEM_NILE_IPC->tf_card_status;
 	outportw(IO_BANK_2003_RAM, prev_sram_bank);
 }
 
@@ -274,7 +274,7 @@ card_init_complete_hc:
 	{
 		uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
 		outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
-		MEM_NILE_IPC->storage_state = card_state;
+		MEM_NILE_IPC->tf_card_status = card_state;
 		outportw(IO_BANK_2003_RAM, prev_sram_bank);
 	}
 

@@ -25,16 +25,21 @@
 
 #include <wonderful.h>
 
+#define NILE_IPC_MAGIC 0xAA55
+#define NILE_IPC_BOOT_FFFF_0000 0
+#define NILE_IPC_BOOT_4000_0000 1
+#define NILE_IPC_BOOT_4000_0010 2
+
 #ifndef __ASSEMBLER__
+
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef struct __attribute__((packed)) {
+	uint16_t magic;
+	uint8_t tf_card_status;
 	uint8_t boot_entrypoint;
-	uint8_t storage_state;
-
-	uint8_t unused[(0x200 - 0xD8) - 0x02];
-
+	uint8_t reserved_1[4];
 	struct {
 		union {
 			uint16_t ax, bx, cx, dx;
@@ -43,7 +48,10 @@ typedef struct __attribute__((packed)) {
 		};
 		uint16_t data[12];
 	} boot_regs;
-	uint8_t boot_io[0xC0];
+	uint8_t boot_io[0xB8];
+	uint8_t reserved_2[8];
+
+	uint8_t user_area[288];
 } nile_ipc_t;
 
 #define MEM_NILE_IPC ((nile_ipc_t __far*) MK_FP(0x1000, 0x0000))
