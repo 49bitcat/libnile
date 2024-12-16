@@ -53,6 +53,8 @@
 #define NILE_MCU_FLASH_PAGE_SIZE 128
 #define NILE_MCU_FLASH_SECTOR_SIZE 4096
 
+#define NILE_MCU_NATIVE_CMD(cmd, arg) (((cmd) & 0x7F) | ((arg) << 7))
+
 #ifndef __ASSEMBLER__
 #include <stdbool.h>
 #include <stdint.h>
@@ -68,6 +70,8 @@ bool nile_mcu_boot_read_memory(uint32_t address, void __far* buffer, uint16_t bu
 bool nile_mcu_boot_jump(uint32_t address);
 bool nile_mcu_boot_write_memory(uint32_t address, const void __far* buffer, uint16_t buflen);
 bool nile_mcu_boot_erase_memory(uint16_t sector_address, uint16_t sector_count);
+
+uint16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen);
 
 #endif /* __ASSEMBLER__ */
 
