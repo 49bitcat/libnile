@@ -46,7 +46,12 @@
 
 #define NILE_POW_CLOCK     0x01
 #define NILE_POW_TF        0x02
+#define NILE_POW_IO_NILE   0x04
+#define NILE_POW_IO_2001   0x08
+#define NILE_POW_IO_2003   0x10
+#define NILE_POW_SRAM      0x40
 #define NILE_POW_MCU_RESET 0x80
+#define NILE_POW_UNLOCK    0xFD
 #define IO_NILE_POW_CNT    0xE2
 
 #define NILE_IRQ_ENABLE    0x01
@@ -66,6 +71,12 @@
 #define NILE_SEG_RAM_SPI_TX 15
 #define NILE_SEG_ROM_SPI_RX 510
 #define NILE_SEG_ROM_BOOT   511
+
+#define NILE_EMU_EEPROM_MASK 0x3
+#define NILE_EMU_EEPROM_128B 0x0
+#define NILE_EMU_EEPROM_1KB  0x1
+#define NILE_EMU_EEPROM_2KB  0x2
+#define IO_NILE_EMU_CNT      0xE6
 
 #define MEM_NILE_SPI_BUFFER ((uint8_t __far*) MK_FP(0x1000, 0x0000))
 

@@ -38,6 +38,13 @@
  */
 void nile_clear_seg_mask(void);
 
+/**
+ * @brief Unlock nileswan-exclusive registers.
+ */
+static inline void nile_io_unlock(void) {
+    outportb(IO_NILE_POW_CNT, NILE_POW_UNLOCK);
+}
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __NILE_CORE_H__ */
