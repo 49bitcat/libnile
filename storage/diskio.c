@@ -290,7 +290,7 @@ card_init_complete_hc:
 
 bool nile_disk_read_inner(BYTE __far* buff, uint16_t count);
 
-DRESULT disk_read (BYTE pdrv, BYTE __far* buff, LBA_t sector, UINT count) {
+DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 
@@ -385,7 +385,7 @@ disk_read_end:
 
 #if FF_FS_READONLY == 0
 
-DRESULT disk_write (BYTE pdrv, const BYTE __far* buff, LBA_t sector, UINT count) {
+DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 

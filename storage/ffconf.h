@@ -20,7 +20,7 @@
 /  and optional writing functions as well. */
 
 #ifdef LIBNILE_IPL1
-#define FF_FS_MINIMIZE	2
+#define FF_FS_MINIMIZE	1
 #else
 #define FF_FS_MINIMIZE	0
 #endif
@@ -405,7 +405,12 @@
 /* Address spaces used for certain pointer arguments.
 */
 #define FF_WF_DATA_BUFFER_ADDRESS_SPACE __far
+#ifdef LIBNILE_IPL1
+#define FF_WF_FILINFO_ADDRESS_SPACE
+#define FF_WF_CONST_ADDRESS_SPACE
+#else
 #define FF_WF_FILINFO_ADDRESS_SPACE __far
 #define FF_WF_CONST_ADDRESS_SPACE __wf_rom
+#endif
 
 /*--- End of configuration options ---*/
