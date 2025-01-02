@@ -38,7 +38,7 @@ nile_tf_cs_high:
     jz 9f
 
     in ax, IO_NILE_SPI_CNT
-    and ax, NILE_SPI_CFG_MASK
+    and ax, (NILE_SPI_CFG_MASK & ~NILE_SPI_DEV_MASK)
     or ah, ((NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS high
     out IO_NILE_SPI_CNT, ax
 
@@ -57,7 +57,7 @@ nile_tf_cs_low:
     jz 9f
 
     in ax, IO_NILE_SPI_CNT
-    and ax, NILE_SPI_CFG_MASK
+    and ax, (NILE_SPI_CFG_MASK & ~NILE_SPI_DEV_MASK)
     or ah, ((NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS low
     out IO_NILE_SPI_CNT, ax
 
