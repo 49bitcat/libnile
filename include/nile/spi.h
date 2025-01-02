@@ -51,6 +51,11 @@ void nile_spi_set_timeout(uint16_t ms);
 bool nile_spi_wait_ready(void);
 
 /**
+ * @brief Safely set the control port.
+ */
+bool nile_spi_set_control(uint16_t value);
+
+/**
  * @brief Flip the currently accessible SPI buffer.
  */
 static inline void nile_spi_buffer_flip(void) {
