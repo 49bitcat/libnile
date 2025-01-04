@@ -28,6 +28,9 @@ static inline void nile_spi_init_flash_cs_high(void) {
     outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK));
 }
 
-static inline void nile_spi_init_flash_cs_low(void) {
+static inline bool nile_spi_init_flash_cs_low(void) {
+    if (!nile_spi_wait_ready())
+        return false;
     outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK) | NILE_SPI_DEV_FLASH);
+    return true;
 }
