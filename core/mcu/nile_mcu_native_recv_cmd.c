@@ -38,5 +38,5 @@ uint16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen) {
     // If packet size > buffer size, skip remaining bytes
     if (len > buflen)
         nile_spi_rx_async(len - buflen, NILE_SPI_MODE_READ);
-    return (buflen & 0x3FF) | (resp_hdr & ~0x3FF);
+    return (buflen & 0x3FF) | (resp_hdr & ~0x7FF);
 }
