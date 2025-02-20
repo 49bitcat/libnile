@@ -42,6 +42,5 @@ bool nile_mcu_boot_read_memory(uint32_t address, void __far* buffer, uint16_t bu
     if (!nile_mcu_boot_send_data(cbuffer, 1, NILE_MCU_BOOT_FLAG_CHECKSUM))
         return false;
 
-    uint16_t readlen = nile_mcu_boot_recv_data(buffer, buflen, 0);
-    return readlen == buflen;
+    return nile_mcu_boot_recv_data(buffer, buflen, 0);
 }
