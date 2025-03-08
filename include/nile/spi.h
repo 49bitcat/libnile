@@ -51,6 +51,14 @@ void nile_spi_set_timeout(uint16_t ms);
 bool nile_spi_wait_ready(void);
 
 /**
+ * @brief Abort SPI transfer.
+ *
+ * @return true The SPI interface is now ready.
+ * @return false Wait timed out.
+ */
+bool nile_spi_abort(void);
+
+/**
  * @brief Safely set the control port.
  */
 bool nile_spi_set_control(uint16_t value);
