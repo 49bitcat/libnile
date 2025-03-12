@@ -16,8 +16,6 @@ else
 include $(WONDERFUL_TOOLCHAIN)/target/$(TARGET)/makedefs.mk
 endif
 
-DEFINES += -DLIBNILE_PCB_REV4
-
 # Source code paths
 # -----------------
 

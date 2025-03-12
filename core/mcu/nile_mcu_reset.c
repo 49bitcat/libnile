@@ -43,33 +43,25 @@ bool nile_mcu_reset(bool to_bootloader) {
     ws_busywait(500);
     outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
 #else
-    // SPI output is connected to BOOT0. For booting from flash, pull low.
-    uint8_t prev_flash = inportb(IO_CART_FLASH);
-    uint16_t prev_bank = inportw(IO_BANK_2003_RAM);
-    outportb(IO_CART_FLASH, 0);
-    outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_SPI_TX);
-
-    outportw(IO_NILE_SPI_CNT, NILE_SPI_BUFFER_IDX | NILE_SPI_CLOCK_CART);
-    memset(MEM_NILE_SPI_BUFFER, to_bootloader ? 0xFF : 0x00, MCU_RESET_WAIT_TIME);
-    outportw(IO_NILE_SPI_CNT, NILE_SPI_START | NILE_SPI_MODE_WRITE | NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU | (MCU_RESET_WAIT_TIME - 1));
-
-    outportb(IO_CART_FLASH, prev_flash);
-    outportw(IO_BANK_2003_RAM, prev_bank);
-
+    // Set BOOT0 pin state. For booting from flash, pull low.
+    uint8_t prev_pow_cnt = inportb(IO_NILE_POW_CNT);
+    uint8_t pow_cnt = prev_pow_cnt;
+    pow_cnt = to_bootloader ? (prev_pow_cnt | NILE_POW_MCU_BOOT0) : (prev_pow_cnt & ~NILE_POW_MCU_BOOT0); 
+    outportb(IO_NILE_POW_CNT, pow_cnt);
     ws_busywait(100);
 
     // Pull RESET low, then high.
-    uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
-    outportb(IO_NILE_POW_CNT, pow);
+    pow_cnt = pow_cnt & ~NILE_POW_MCU_RESET;
+    outportb(IO_NILE_POW_CNT, pow_cnt);
     ws_busywait(500);
-    outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
-
-    // Wait for the BOOT0 send to end.
-    if (!nile_spi_wait_ready())
-        return false;
+    outportb(IO_NILE_POW_CNT, pow_cnt | NILE_POW_MCU_RESET);
 #endif
 
     ws_busywait(10000);
+
+#ifndef LIBNILE_PCB_REV$
+    outportb(IO_NILE_POW_CNT, prev_pow_cnt);
+#endif
 
     // If booting to bootloader, handle ACK.
     if (to_bootloader) {
