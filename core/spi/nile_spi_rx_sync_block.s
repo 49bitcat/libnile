@@ -42,7 +42,7 @@ nile_spi_rx_sync_block:
     push si
     push es
     push di
-    push dx
+    push dx // used later as ES:DI
     push ax
 
     ss mov ax, [bx + WF_PLATFORM_CALL_STACK_OFFSET(0)]
@@ -98,9 +98,9 @@ nile_spi_rx_sync_block:
     pop es
     pop si
     pop ds
+    WF_PLATFORM_CALL nile_spi_abort
     WF_PLATFORM_RET 0x2
 
 9:
-    pop ax
-    pop dx
+    add sp, 4 // remove pushed DX/AX
     jmp 8b

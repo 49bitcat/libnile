@@ -49,4 +49,4 @@ nile_spi_rx_sync_flip:
     out (IO_NILE_SPI_CNT+1), al
 
 9:
-    WF_PLATFORM_RET
+    jmp nile_spi_abort
