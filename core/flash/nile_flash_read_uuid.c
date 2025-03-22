@@ -26,7 +26,7 @@
 #include "utils.h"
 
 bool nile_flash_read_uuid(uint8_t *buffer) {
-    uint32_t result = 0;
+    bool result = false;
     buffer[0] = NILE_FLASH_CMD_RDUUID;
 
     nile_spi_init_flash_cs_low();
@@ -34,8 +34,7 @@ bool nile_flash_read_uuid(uint8_t *buffer) {
     if (!nile_spi_tx_async_block(buffer, 5))
         goto error;
 
-    if (!nile_spi_rx_sync_block(buffer, 8, NILE_SPI_MODE_READ))
-        goto error;
+    result = nile_spi_rx_sync_block(buffer, 8, NILE_SPI_MODE_READ);
 
 error:
     nile_spi_init_flash_cs_high();
