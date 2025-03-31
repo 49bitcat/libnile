@@ -59,13 +59,14 @@
 #define NILE_IRQ_SPI       0x02
 #define IO_NILE_IRQ        0xE3
 
-#define NILE_SEG_RAM_MASK  0xF
-#define NILE_SEG_RAM_SHIFT 12
-#define NILE_SEG_ROM_MASK  0x1FF
-#define NILE_SEG_ROM_SHIFT 0
-#define NILE_SEG_ROM0_LOCK (1 << 9)
-#define NILE_SEG_ROM1_LOCK (1 << 10)
-#define NILE_SEG_SRAM_LOCK (1 << 11)
+#define NILE_SEG_MASK_RAM_MASK  0xF
+#define NILE_SEG_MASK_RAM_SHIFT 12
+#define NILE_SEG_MASK_ROM_MASK  0x1FF
+#define NILE_SEG_MASK_ROM_SHIFT 0
+#define NILE_SEG_MASK_ROM0_LOCK (1 << 9)
+#define NILE_SEG_MASK_ROM1_LOCK (1 << 10)
+#define NILE_SEG_MASK_RAM_LOCK  (1 << 11)
+#define NILE_SEG_MASK_LOCK      (7 << 9)
 #define IO_NILE_SEG_MASK   0xE4
 
 #define NILE_SEG_RAM_IPC    14

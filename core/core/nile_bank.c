@@ -25,15 +25,39 @@
 #include <ws/hardware.h>
 #include "nile.h"
 
-void nile_clear_seg_mask(void) {
+void nile_bank_clear_mask(void) {
 	uint16_t mask = inportw(IO_NILE_SEG_MASK);
-    uint16_t rom_mask = (mask >> NILE_SEG_ROM_SHIFT) & NILE_SEG_ROM_MASK;
-    uint16_t ram_mask = (mask >> NILE_SEG_RAM_SHIFT) & NILE_SEG_RAM_MASK;
-    outportw(IO_BANK_2003_RAM, inportw(IO_BANK_2003_RAM) & ram_mask);
+	uint16_t rom_mask = (mask >> NILE_SEG_MASK_ROM_SHIFT) & NILE_SEG_MASK_ROM_MASK;
+	uint16_t ram_mask = (mask >> NILE_SEG_MASK_RAM_SHIFT) & NILE_SEG_MASK_RAM_MASK;
+
+	outportw(IO_BANK_2003_RAM, inportw(IO_BANK_2003_RAM) & ram_mask);
 	outportw(IO_BANK_2003_ROM0, inportw(IO_BANK_2003_ROM0) & rom_mask);
 	outportw(IO_BANK_2003_ROM1, inportw(IO_BANK_2003_ROM1) & rom_mask);
 	outportb(IO_BANK_ROM_LINEAR, inportb(IO_BANK_ROM_LINEAR) & (rom_mask >> 4));
 
 	outportw(IO_NILE_SEG_MASK, 0xFFFF);
+}
 
+/**
+ * @brief Adjust banking registers and unlock NILE_SEG_MASK RAM/ROM0/ROM1.
+ *
+ * This variant is safe for <1MB cartridge images.
+ */
+void nile_bank_unlock(void) {
+	uint16_t mask = inportw(IO_NILE_SEG_MASK);
+	uint16_t rom_mask = (mask >> NILE_SEG_MASK_ROM_SHIFT) & NILE_SEG_MASK_ROM_MASK;
+	uint16_t ram_mask = (mask >> NILE_SEG_MASK_RAM_SHIFT) & NILE_SEG_MASK_RAM_MASK;
+
+	outportw(IO_BANK_2003_RAM, inportw(IO_BANK_2003_RAM) & ram_mask);
+	outportw(IO_BANK_2003_ROM0, inportw(IO_BANK_2003_ROM0) & rom_mask);
+	outportw(IO_BANK_2003_ROM1, inportw(IO_BANK_2003_ROM1) & rom_mask);
+
+	outportw(IO_NILE_SEG_MASK, inportw(IO_NILE_SEG_MASK) & ~NILE_SEG_MASK_LOCK);
+}
+
+/**
+ * @brief Re-lock NILE_SEG_MASK RAM/ROM0/ROM1.
+ */
+void nile_bank_lock(void) {
+	outportw(IO_NILE_SEG_MASK, inportw(IO_NILE_SEG_MASK) | NILE_SEG_MASK_LOCK);
 }

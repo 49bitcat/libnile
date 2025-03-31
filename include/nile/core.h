@@ -31,12 +31,24 @@
 #include <stdint.h>
 
 /**
- * @brief Clear NILE_SEG_MASK.
- * 
+ * @brief Adjust banking registers and clear NILE_SEG_MASK.
+ *
  * Note that if executing from ROML, this is only guaranteed safe for
- * >=1MB cartridges - due to the linear address.
+ * >=1MB cartridge images, due to the linear address.
  */
-void nile_clear_seg_mask(void);
+void nile_bank_clear_mask(void);
+
+/**
+ * @brief Adjust banking registers and unlock NILE_SEG_MASK RAM/ROM0/ROM1.
+ *
+ * This variant is safe for <1MB cartridge images.
+ */
+void nile_bank_unlock(void);
+
+/**
+ * @brief Re-lock NILE_SEG_MASK RAM/ROM0/ROM1.
+ */
+void nile_bank_lock(void);
 
 /**
  * @brief Unlock nileswan-exclusive registers.
