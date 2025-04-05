@@ -30,7 +30,7 @@
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
-// #define USE_MULTI_TRANSFER_WRITES
+#define USE_MULTI_TRANSFER_WRITES
 
 #include "tf.h"
 
@@ -374,7 +374,6 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_spi_wait_ready();
 	nile_tf_cs_high();
 	return result;
 }
@@ -383,25 +382,25 @@ disk_read_end:
 
 DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
-	uint8_t resp[8];
+	uint8_t resp[2];
 
 	if (!(card_state & NILE_IPC_TF_BLOCK))
 		sector <<= 9;
 
 #ifdef USE_MULTI_TRANSFER_WRITES
 	bool multi_transfer = count > 1;
-	if (multi_transfer && (card_state & NILE_IPC_TF_TYPE_TF)) {
-		nile_tf_command(TFC_SET_BLOCK_COUNT, count, 0x95, resp, 1);
-	}
 	if (nile_tf_command(multi_transfer ? TFC_WRITE_MULTIPLE_BLOCK : TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
 		set_detail_code(0x20);
 		goto disk_read_end;
 	}
 
 	while (count) {
-		resp[0] = 0xFF;
-		resp[1] = multi_transfer ? 0xFC : 0xFE;
-		if (!nile_spi_tx_async_block(resp, 2)) {
+		if (nile_tf_wait_ready(0x00)) {
+			set_detail_code(0x24);
+			goto disk_read_stop;
+		}
+		resp[0] = multi_transfer ? 0xFC : 0xFE;
+		if (!nile_spi_tx_async_block(resp, 1)) {
 			set_detail_code(0x21);
 			goto disk_read_stop;
 		}
@@ -424,10 +423,8 @@ DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff,
 disk_read_stop:
 
 	if (multi_transfer) {
-		resp[0] = 0xFF;
-		resp[1] = 0xFD;
-		resp[2] = 0xFF;
-		nile_spi_tx_async_block(resp, 3);
+		resp[0] = 0xFD;
+		nile_spi_tx_async_block(resp, 1);
 		if (nile_tf_wait_ready(0x00)) {
 			set_detail_code(0x24);
 			goto disk_read_end;
@@ -466,7 +463,6 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_spi_wait_ready();
 	nile_tf_cs_high();
 	return result;
 }
