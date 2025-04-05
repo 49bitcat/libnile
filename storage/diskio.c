@@ -26,6 +26,7 @@
 #include <ws/util.h>
 #include "nile.h"
 #include "ff.h"
+#include "nile/ipc.h"
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
@@ -34,11 +35,6 @@
 #include "tf.h"
 
 // FatFS API implementation
-
-#define NILE_CARD_TYPE_MMC 1
-#define NILE_CARD_TYPE_TF1 2
-#define NILE_CARD_TYPE_TF2 3
-#define NILE_CARD_BLOCK_ADDRESSING 0x80
 
 uint8_t card_state;
 
@@ -203,7 +199,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 					break;
 				} else if (!init_response) {
 					// Initialization success
-					card_state = NILE_CARD_TYPE_TF2;
+					card_state = NILE_IPC_TF_TYPE_TF_NEW;
 					break;
 				}
 				// Card still idle, try again
@@ -215,7 +211,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 				// Read OCR to check for HC card
 				if (!nile_tf_command(TFC_READ_OCR, 0, 0x95, buffer, 5)) {
 					if (buffer[1] & 0x40) {
-						card_state |= NILE_CARD_BLOCK_ADDRESSING;
+						card_state = NILE_IPC_TF_BLOCK | NILE_IPC_TF_TYPE_TF_NEW;
 					}
 				}
 				goto card_init_complete_hc;
@@ -245,9 +241,9 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		} else if (!init_response) {
 			// Initialization success
 			if (init_command == TFC_APP_SEND_OP_COND) {
-				card_state = NILE_CARD_TYPE_TF1;
+				card_state = NILE_IPC_TF_TYPE_TF_OLD;
 			} else {
-				card_state = NILE_CARD_TYPE_MMC;
+				card_state = NILE_IPC_TF_TYPE_MMC_OLD;
 			}
 			goto card_init_complete;
 		}
@@ -294,7 +290,7 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 
-	if (!(card_state & NILE_CARD_BLOCK_ADDRESSING))
+	if (!(card_state & NILE_IPC_TF_BLOCK))
 		sector <<= 9;
 
 #ifdef USE_MULTI_TRANSFER_READS
@@ -371,7 +367,7 @@ disk_read_stop:
 			goto disk_read_end;
 		}
 		buff += 512;
-		sector += (card_state & NILE_CARD_BLOCK_ADDRESSING) ? 1 : 512;
+		sector += (card_state & NILE_IPC_TF_BLOCK) ? 1 : 512;
 		count--;
 	}
 #endif
@@ -389,11 +385,14 @@ DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff,
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 
-	if (!(card_state & NILE_CARD_BLOCK_ADDRESSING))
+	if (!(card_state & NILE_IPC_TF_BLOCK))
 		sector <<= 9;
 
 #ifdef USE_MULTI_TRANSFER_WRITES
 	bool multi_transfer = count > 1;
+	if (multi_transfer && (card_state & NILE_IPC_TF_TYPE_TF)) {
+		nile_tf_command(TFC_SET_BLOCK_COUNT, count, 0x95, resp, 1);
+	}
 	if (nile_tf_command(multi_transfer ? TFC_WRITE_MULTIPLE_BLOCK : TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
 		set_detail_code(0x20);
 		goto disk_read_end;
@@ -460,7 +459,7 @@ disk_read_stop:
 			goto disk_read_end;
 		}
 		buff += 512;
-		sector += (card_state & NILE_CARD_BLOCK_ADDRESSING) ? 1 : 512;
+		sector += (card_state & NILE_IPC_TF_BLOCK) ? 1 : 512;
 		count--;
 	}
 #endif

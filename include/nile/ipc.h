@@ -34,10 +34,12 @@
 
 #define NILE_IPC_TF_BLOCK 0x80
 #define NILE_IPC_TF_TYPE(v) ((v) & 0x7F)
-#define NILE_IPC_TF_TYPE_MMC    1
-#define NILE_IPC_TF_TYPE_MMC_HC 2
-#define NILE_IPC_TF_TYPE_TF     3
-#define NILE_IPC_TF_TYPE_TF_HC  4
+#define NILE_IPC_TF_TYPE_MMC_OLD 0x01
+#define NILE_IPC_TF_TYPE_MMC_NEW 0x02
+#define NILE_IPC_TF_TYPE_TF_OLD  0x04
+#define NILE_IPC_TF_TYPE_TF_NEW  0x08
+#define NILE_IPC_TF_TYPE_MMC     0x03
+#define NILE_IPC_TF_TYPE_TF      0x0C
 
 /**
  * @brief FFFF:0000 - the standard entrypoint.
