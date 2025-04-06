@@ -60,7 +60,7 @@ bool nile_mcu_reset(bool to_bootloader) {
 
     ws_busywait(MCU_BOOT_WAIT_TIME);
 
-#ifndef LIBNILE_PCB_REV$
+#ifndef LIBNILE_PCB_REV4
     outportb(IO_NILE_POW_CNT, prev_pow_cnt);
 #endif
 
