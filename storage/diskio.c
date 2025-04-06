@@ -26,6 +26,7 @@
 #include <ws/util.h>
 #include "nile.h"
 #include "ff.h"
+#include "nile/hardware.h"
 #include "nile/ipc.h"
 #include "diskio.h"
 
@@ -141,18 +142,30 @@ DSTATUS disk_status(BYTE pdrv) {
 
 #define MAX_RETRIES 1000
 
-void nile_tf_load_state_from_ipc(void) {
+static void nilefs_ipc_sync(void) {
 	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
 	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
 	card_state = MEM_NILE_IPC->tf_card_status;
 	outportw(IO_BANK_2003_RAM, prev_sram_bank);
 }
 
+void nilefs_eject(void) {
+	// Set card status to disabled
+	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
+	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+	card_state = 0;
+	MEM_NILE_IPC->tf_card_status = 0;
+	outportw(IO_BANK_2003_RAM, prev_sram_bank);
+
+	// Disable TF card power
+	outportb(IO_NILE_POW_CNT, inportb(IO_NILE_POW_CNT) & ~NILE_POW_TF);
+}
+
 DSTATUS disk_initialize(BYTE pdrv) {
 	uint16_t retries;
 	uint8_t buffer[8];
 
-	nile_tf_load_state_from_ipc();
+	nilefs_ipc_sync();
 	if (card_state != 0) return 0;
 
 	card_state = 0;

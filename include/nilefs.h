@@ -29,6 +29,9 @@
 #include "nilefs/ff.h"
 #include "nilefs/diskio.h"
 
-void nile_tf_load_state_from_ipc(void);
+/**
+ * @brief Eject the currently inserted TF card.
+ */
+void nilefs_eject(void);
 
 #endif /* __NILEFS_H__ */
