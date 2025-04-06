@@ -389,18 +389,26 @@ DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff,
 
 #ifdef USE_MULTI_TRANSFER_WRITES
 	bool multi_transfer = count > 1;
-	if (nile_tf_command(multi_transfer ? TFC_WRITE_MULTIPLE_BLOCK : TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
-		set_detail_code(0x20);
-		goto disk_read_end;
+	if (multi_transfer) {
+		if ((card_state & NILE_IPC_TF_TYPE_TF) && nile_tf_command(TFC_SET_BLOCK_COUNT, count, 0x95, resp, 1)) {
+			set_detail_code(0x29);
+			goto disk_read_end;
+		}
+		if (nile_tf_command(TFC_WRITE_MULTIPLE_BLOCK, sector, 0x95, resp, 1)) {
+			set_detail_code(0x20);
+			goto disk_read_end;
+		}
+	} else {
+		if (nile_tf_command(TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
+			set_detail_code(0x20);
+			goto disk_read_end;
+		}
 	}
 
 	while (count) {
-		if (nile_tf_wait_ready(0x00)) {
-			set_detail_code(0x24);
-			goto disk_read_stop;
-		}
-		resp[0] = multi_transfer ? 0xFC : 0xFE;
-		if (!nile_spi_tx_async_block(resp, 1)) {
+		resp[0] = 0xFF;
+		resp[1] = multi_transfer ? 0xFC : 0xFE;
+		if (!nile_spi_tx_async_block(resp, 2)) {
 			set_detail_code(0x21);
 			goto disk_read_stop;
 		}
@@ -408,15 +416,23 @@ DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff,
 			set_detail_code(0x22);
 			goto disk_read_stop;
 		}
-		if (!nile_spi_rx_sync_block(resp, 2, NILE_SPI_MODE_WAIT_READ)) {
+		resp[1] = 0xFF;
+		if (!nile_spi_tx_async_block(resp, 2)) {
 			set_detail_code(0x23);
+			goto disk_read_stop;
+		}
+		if (!nile_spi_rx_sync_block(resp, 1, NILE_SPI_MODE_READ)) {
+			set_detail_code(0x24);
 			goto disk_read_stop;
 		}
 		if ((resp[0] & 0x1F) != 0x05) {
 			set_detail_code(0x25);
 			goto disk_read_end;
 		}
-		// TODO: error handling?
+		if (nile_tf_wait_ready(0x00)) {
+			set_detail_code(0x26);
+			goto disk_read_end;
+		}
 		buff += 512;
 		count--;
 	}
@@ -424,10 +440,14 @@ disk_read_stop:
 
 	if (multi_transfer) {
 		resp[0] = 0xFD;
-		nile_spi_tx_async_block(resp, 1);
+		resp[1] = 0xFF;
+		if (!nile_spi_tx_async_block(resp, 2)) {
+			set_detail_code(0x27);
+			goto disk_read_stop;
+		}
 		if (nile_tf_wait_ready(0x00)) {
-			set_detail_code(0x24);
-			goto disk_read_end;
+			set_detail_code(0x28);
+			goto disk_read_stop;
 		}
 	}
 #else

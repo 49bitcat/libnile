@@ -33,7 +33,7 @@
     .align 2
     .global nile_tf_cs_high
 nile_tf_cs_high:
-    WF_PLATFORM_CALL nile_spi_wait_ready
+    call __nile_spi_wait_ready_near
     test al, al
     jz 9f
 
@@ -52,7 +52,7 @@ nile_tf_cs_high:
     .align 2
     .global nile_tf_cs_low
 nile_tf_cs_low:
-    WF_PLATFORM_CALL nile_spi_wait_ready
+    call __nile_spi_wait_ready_near
     test al, al
     jz 9f
 
