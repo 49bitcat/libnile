@@ -126,6 +126,16 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
 }
 
 /**
+ * @brief Send a "native protocol" MCU command.
+ * 
+ * @param cmd Command.
+ * @param buffer Optional parameter buffer.
+ * @param buflen Size of the parameter buffer (0 - 512 bytes).
+ * @see NILE_MCU_NATIVE_CMD
+ */
+bool nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen);
+
+/**
  * @brief Receive the response of a "native protocol" MCU command.
  *
  * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
