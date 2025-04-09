@@ -142,7 +142,7 @@ DSTATUS disk_status(BYTE pdrv) {
 
 #define MAX_RETRIES 1000
 
-static void nilefs_ipc_sync(void) {
+void nilefs_ipc_sync(void) {
 	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
 	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
 	card_state = MEM_NILE_IPC->tf_card_status;
