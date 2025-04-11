@@ -57,6 +57,11 @@ static inline void nile_io_unlock(void) {
     outportb(IO_NILE_POW_CNT, NILE_POW_UNLOCK);
 }
 
+/**
+ * @brief Jump back to cartridge IPL0 (soft reset).
+ */
+void nile_reboot(void);
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __NILE_CORE_H__ */
