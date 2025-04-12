@@ -55,7 +55,14 @@
 #define NILE_POW_UNLOCK    0xDD
 #define IO_NILE_POW_CNT    0xE2
 
-#define IO_NILE_WARMBOOT_CNT 0xE3
+#define NILE_EMU_EEPROM_MASK   0x3
+#define NILE_EMU_EEPROM_128B   0x0
+#define NILE_EMU_EEPROM_1KB    0x1
+#define NILE_EMU_EEPROM_2KB    0x2
+#define NILE_EMU_FLASH_FSM     0x4
+#define NILE_EMU_ROM_BUS_16BIT 0x0
+#define NILE_EMU_ROM_BUS_8BIT  0x8
+#define IO_NILE_EMU_CNT      0xE3
 
 #define NILE_SEG_MASK_RAM_MASK  0xF
 #define NILE_SEG_MASK_RAM_SHIFT 12
@@ -72,14 +79,7 @@
 #define NILE_SEG_ROM_SPI_RX 510
 #define NILE_SEG_ROM_BOOT   511
 
-#define NILE_EMU_EEPROM_MASK   0x3
-#define NILE_EMU_EEPROM_128B   0x0
-#define NILE_EMU_EEPROM_1KB    0x1
-#define NILE_EMU_EEPROM_2KB    0x2
-#define NILE_EMU_FLASH_FSM     0x4
-#define NILE_EMU_ROM_BUS_16BIT 0x0
-#define NILE_EMU_ROM_BUS_8BIT  0x8
-#define IO_NILE_EMU_CNT      0xE6
+#define IO_NILE_WARMBOOT_CNT 0xE6
 
 #define MEM_NILE_SPI_BUFFER ((uint8_t __far*) MK_FP(0x1000, 0x0000))
 
