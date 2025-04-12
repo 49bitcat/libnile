@@ -53,7 +53,7 @@ nile_tf_wait_ready:
 
     m_nile_spi_wait_ready_ax_no_timeout
 
-    and ax, 0x7800
+    and ax, NILE_SPI_CFG_MASK
     or ah, (NILE_SPI_MODE_READ >> 8)
     out IO_NILE_SPI_CNT, ax
 

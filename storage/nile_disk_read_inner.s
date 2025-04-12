@@ -31,17 +31,10 @@
 
     .section .fartext.s.libnile, "ax"
     .align 2
-__read256:
-#if 0
-    push cx
-    mov cx, 0x80
-    rep movsw
-    pop cx
-#else
-.rept 128
+__read128:
+.rept 64
     movsw
 .endr
-#endif
     ret
 
 .macro __waitread1
@@ -96,20 +89,20 @@ nile_disk_read_inner_loop:
     mov al, 0
     jne 9f
 
-    // queue read 256 bytes
+    // queue read 128 bytes
     and ah, (NILE_SPI_CFG_MASK >> 8)
-    or ax, (0xFF | NILE_SPI_START | NILE_SPI_MODE_READ)
+    or ax, ((128-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
     m_nile_spi_wait_ready_ax_no_timeout
 
-    // queue read 258 bytes
+    // queue read 386 bytes
     and ax, NILE_SPI_CFG_MASK
-    xor ax, (0x101 | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
+    xor ax, ((386-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
-    // read 256 bytes
-    call __read256
+    // read 128 bytes
+    call __read128
     xor si, si
 
     m_nile_spi_wait_ready_ax_no_timeout
@@ -117,15 +110,19 @@ nile_disk_read_inner_loop:
     xor ah, (NILE_SPI_BUFFER_IDX >> 8)
     out IO_NILE_SPI_CNT, ax
 
-    // read 256 bytes
+    // read 384 bytes
     dec bx
     jz 8f
     __waitread1
-    call __read256
+    call __read128
+    call __read128
+    call __read128
     jmp nile_disk_read_inner_loop
 
 8:
-    call __read256
+    call __read128
+    call __read128
+    call __read128
     mov al, 1
 9:
     mov si, ax
