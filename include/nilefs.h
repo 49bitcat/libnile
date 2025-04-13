@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
@@ -18,6 +18,16 @@
  *    misrepresented as being the original software.
  *
  * 3. This notice may not be removed or altered from any source distribution.
+ */
+
+/**
+ * @file nilefs.h
+ *
+ * The nilefs library provides FAT filesystem access to the removable storage
+ * card provided by nileswan.
+ *
+ * More information is available in the FatFs documentation, which this
+ * library is based on: http://elm-chan.org/fsw/ff/
  */
 
 #ifndef __NILEFS_H__

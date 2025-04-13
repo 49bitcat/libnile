@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
