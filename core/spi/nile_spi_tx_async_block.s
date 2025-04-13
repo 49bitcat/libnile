@@ -76,7 +76,7 @@ nile_spi_tx_async_block:
     // uint16_t new_cnt = (size - 1) | NILE_SPI_MODE_WRITE | (cnt & 0x7800);
     // outportw(IO_NILE_SPI_CNT, (new_cnt ^ (NILE_SPI_BUFFER_IDX | NILE_SPI_START)));
     and ax, NILE_SPI_CFG_MASK
-    xor ah, ((NILE_SPI_MODE_WRITE | NILE_SPI_BUFFER_IDX | NILE_SPI_START) >> 8)
+    xor ax, (NILE_SPI_MODE_WRITE | NILE_SPI_BUFFER_IDX | NILE_SPI_START)
     or ax, cx
     out IO_NILE_SPI_CNT, ax
 

@@ -39,7 +39,7 @@ nile_tf_cs_high:
 
     in ax, IO_NILE_SPI_CNT
     and ax, (NILE_SPI_CFG_MASK & ~NILE_SPI_DEV_MASK)
-    or ah, ((NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS high
+    or ax, (NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) // pull CS high
     out IO_NILE_SPI_CNT, ax
 
     m_nile_spi_wait_ready_al_no_timeout
@@ -58,7 +58,7 @@ nile_tf_cs_low:
 
     in ax, IO_NILE_SPI_CNT
     and ax, (NILE_SPI_CFG_MASK & ~NILE_SPI_DEV_MASK)
-    or ah, ((NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) >> 8) // pull CS low
+    or ax, (NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) // pull CS low
     out IO_NILE_SPI_CNT, ax
 
     // Already done by nile_tf_wait_ready

@@ -83,7 +83,7 @@ nile_flash_wait_ready:
     jz 8f
 
     mov ax, bx
-    and ah, ~(NILE_SPI_START >> 8)
+    and ax, ~NILE_SPI_START
     out IO_NILE_SPI_CNT, ax
 
     test byte ptr [0x0000], NILE_FLASH_SR1_BUSY

@@ -31,17 +31,17 @@
 
     .section .fartext.s.libnile, "ax"
     .align 2
-__read128:
+
+    .global __nile_movsw128
+__nile_movsw128:
 .rept 64
     movsw
 .endr
     ret
 
 .macro __waitread1
-    // nile_spi_rx(1, NILE_SPI_MODE_WAIT_READ)
-    in ax, IO_NILE_SPI_CNT
     and ax, NILE_SPI_CFG_MASK
-    or ah, ((NILE_SPI_START | NILE_SPI_MODE_WAIT_READ) >> 8)
+    or ax, (NILE_SPI_START | NILE_SPI_MODE_WAIT_READ)
     out IO_NILE_SPI_CNT, ax
 .endm
 
@@ -67,6 +67,7 @@ nile_disk_read_inner:
     mov ax, NILE_SEG_ROM_SPI_RX
     out IO_BANK_2003_ROM1, ax
 
+    in ax, IO_NILE_SPI_CNT
     __waitread1
 
     // DS = 0x3000 (read from ROM1)
@@ -90,7 +91,7 @@ nile_disk_read_inner_loop:
     jne 9f
 
     // queue read 128 bytes
-    and ah, (NILE_SPI_CFG_MASK >> 8)
+    and ax, NILE_SPI_CFG_MASK
     or ax, ((128-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
@@ -102,37 +103,37 @@ nile_disk_read_inner_loop:
     out IO_NILE_SPI_CNT, ax
 
     // read 128 bytes
-    call __read128
+    call __nile_movsw128
     xor si, si
 
     m_nile_spi_wait_ready_ax_no_timeout
 
-    xor ah, (NILE_SPI_BUFFER_IDX >> 8)
+    xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
     // read 384 bytes
     dec bx
     jz 8f
     __waitread1
-    call __read128
-    call __read128
-    call __read128
+    call __nile_movsw128
+    call __nile_movsw128
+    call __nile_movsw128
     jmp nile_disk_read_inner_loop
 
 8:
-    call __read128
-    call __read128
-    call __read128
+    call __nile_movsw128
+    call __nile_movsw128
+    call __nile_movsw128
     mov al, 1
 9:
-    mov si, ax
 
 #ifndef LIBNILE_CLOBBER_ROM1
+    mov si, ax
     pop ax
     out IO_BANK_2003_ROM1, ax
+    mov ax, si
 #endif
 
-    mov ax, si
     pop si
     pop ds
     pop di

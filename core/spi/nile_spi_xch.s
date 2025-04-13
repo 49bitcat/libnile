@@ -56,7 +56,7 @@ nile_spi_xch:
     // uint16_t new_cnt = NILE_SPI_MODE_EXCH | (cnt & 0x7800);
     // outportw(IO_NILE_SPI_CNT, (new_cnt ^ (NILE_SPI_BUFFER_IDX | NILE_SPI_START)));
     and ax, NILE_SPI_CFG_MASK
-    xor ah, ((NILE_SPI_MODE_EXCH | NILE_SPI_BUFFER_IDX | NILE_SPI_START) >> 8)
+    xor ax, (NILE_SPI_MODE_EXCH | NILE_SPI_BUFFER_IDX | NILE_SPI_START)
     out IO_NILE_SPI_CNT, ax
 
     m_pop_sram_bank_state
