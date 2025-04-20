@@ -79,8 +79,11 @@
 #define NILE_SEG_ROM_SPI_RX 510
 #define NILE_SEG_ROM_BOOT   511
 
-#define IO_NILE_WARMBOOT_CNT 0xE6
+#define IO_NILE_WARMBOOT_CNT   0xE6
+#define IO_NILE_BOARD_REVISION 0xE6
 
-#define MEM_NILE_SPI_BUFFER ((uint8_t __far*) MK_FP(0x1000, 0x0000))
+#define IO_NILE_IRQ_ENABLE 0xE8
+#define IO_NILE_IRQ_STATUS 0xE9
+#define NILE_IRQ_MCU       0x01
 
 #endif /* __NILE_HARDWARE_H__ */
