@@ -21,38 +21,38 @@
  */
 
 .macro m_push_sram_bank_state
-    // uint8_t prev_flash = inportb(IO_CART_FLASH);
-    in al, IO_CART_FLASH
+    // uint8_t prev_flash = inportb(WS_CART_BANK_FLASH_PORT);
+    in al, WS_CART_BANK_FLASH_PORT
     push ax
-    // uint8_t prev_bank = inportw(IO_BANK_2003_RAM);
-    in ax, IO_BANK_2003_RAM
+    // uint8_t prev_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+    in ax, WS_CART_EXTBANK_RAM_PORT
     push ax
 .endm
 .macro m_pop_sram_bank_state
-    // outportw(IO_BANK_2003_RAM, prev_bank);
+    // outportw(WS_CART_EXTBANK_RAM_PORT, prev_bank);
     pop ax
-    out IO_BANK_2003_RAM, ax
-    // outportb(IO_CART_FLASH, prev_flash);
+    out WS_CART_EXTBANK_RAM_PORT, ax
+    // outportb(WS_CART_BANK_FLASH_PORT, prev_flash);
     pop ax
-    out IO_CART_FLASH, al
+    out WS_CART_BANK_FLASH_PORT, al
 .endm
 
 .macro m_open_sram_ram_bank bank
-    // outportb(IO_CART_FLASH, 0);
+    // outportb(WS_CART_BANK_FLASH_PORT, 0);
     xor ax, ax
-    out IO_CART_FLASH, al
-    // outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_TX);
+    out WS_CART_BANK_FLASH_PORT, al
+    // outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_TX);
     mov al, \bank
-    out IO_BANK_2003_RAM, ax
+    out WS_CART_EXTBANK_RAM_PORT, ax
 .endm
 
 .macro m_open_sram_rom_bank bank
-    // outportb(IO_CART_FLASH, 1);
+    // outportb(WS_CART_BANK_FLASH_PORT, 1);
     mov al, 1
-    out IO_CART_FLASH, al
-    // outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_TX);
+    out WS_CART_BANK_FLASH_PORT, al
+    // outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_TX);
     mov ax, \bank
-    out IO_BANK_2003_RAM, ax
+    out WS_CART_EXTBANK_RAM_PORT, ax
 .endm
 
 .macro m_nile_spi_wait_ready_al_no_timeout

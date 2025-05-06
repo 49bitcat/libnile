@@ -66,11 +66,11 @@ nile_flash_wait_ready:
     pop ds
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    in ax, IO_BANK_2003_ROM1
+    in ax, WS_CART_EXTBANK_ROM1_PORT
     push ax
 #endif
     mov ax, NILE_SEG_ROM_SPI_RX
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 
 1:
     // Keep reading bytes until BUSY is clear
@@ -97,7 +97,7 @@ nile_flash_wait_ready:
 
 #ifndef LIBNILE_CLOBBER_ROM1
     pop ax
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 #endif
 
     // Set CS to high
@@ -107,4 +107,4 @@ nile_flash_wait_ready:
 
     pop ds
     mov ax, cx
-    WF_PLATFORM_RET
+    IA16_RET

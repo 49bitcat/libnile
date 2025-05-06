@@ -143,19 +143,19 @@ DSTATUS disk_status(BYTE pdrv) {
 #define MAX_RETRIES 1000
 
 void nilefs_ipc_sync(void) {
-	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
-	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
 	card_state = MEM_NILE_IPC->tf_card_status;
-	outportw(IO_BANK_2003_RAM, prev_sram_bank);
+	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 }
 
 void nilefs_eject(void) {
 	// Set card status to disabled
-	uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
-	outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
 	card_state = 0;
 	MEM_NILE_IPC->tf_card_status = 0;
-	outportw(IO_BANK_2003_RAM, prev_sram_bank);
+	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 
 	// Disable TF card power
 	outportb(IO_NILE_POW_CNT, inportb(IO_NILE_POW_CNT) & ~NILE_POW_TF);
@@ -183,9 +183,8 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		// Power card on
 		powcnt |= NILE_POW_TF;
 		outportb(IO_NILE_POW_CNT, powcnt);
-		// Wait 250 milliseconds
-		for (uint8_t i = 0; i < 5; i++)
-			ws_busywait(50000);
+	
+		ws_delay_ms(250);
 	}
 
 	nile_spi_rx_async(10, NILE_SPI_MODE_READ);
@@ -216,7 +215,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 					break;
 				}
 				// Card still idle, try again
-				ws_busywait(1000);
+				ws_delay_ms(1);
 			}
 
 			// Card init successful?
@@ -261,7 +260,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 			goto card_init_complete;
 		}
 		// Card still idle, try again
-		ws_busywait(1000);
+		ws_delay_ms(1);
 	}
 
 	set_detail_code(3);
@@ -281,10 +280,10 @@ card_init_complete_hc:
 	}
 
 	{
-		uint16_t prev_sram_bank = inportw(IO_BANK_2003_RAM);
-		outportw(IO_BANK_2003_RAM, NILE_SEG_RAM_IPC);
+		uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+		outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
 		MEM_NILE_IPC->tf_card_status = card_state;
-		outportw(IO_BANK_2003_RAM, prev_sram_bank);
+		outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 	}
 
 	// nile_tf_cs_high(); but also changes clocks
