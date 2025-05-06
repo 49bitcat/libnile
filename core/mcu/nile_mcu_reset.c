@@ -41,7 +41,7 @@ bool nile_mcu_reset(bool to_bootloader) {
     // Pull RESET low, then high.
     uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
     outportb(IO_NILE_POW_CNT, pow);
-    ws_busywait(MCU_RESET_WAIT_TIME);
+    ws_delay_us(MCU_RESET_WAIT_TIME);
     outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
 #else
     // Set BOOT0 pin state. For booting from flash, pull low.
@@ -49,16 +49,16 @@ bool nile_mcu_reset(bool to_bootloader) {
     uint8_t pow_cnt = prev_pow_cnt;
     pow_cnt = to_bootloader ? (prev_pow_cnt | NILE_POW_MCU_BOOT0) : (prev_pow_cnt & ~NILE_POW_MCU_BOOT0); 
     outportb(IO_NILE_POW_CNT, pow_cnt);
-    ws_busywait(MCU_BOOT0_WAIT_TIME);
+    ws_delay_us(MCU_BOOT0_WAIT_TIME);
 
     // Pull RESET low, then high.
     pow_cnt = pow_cnt & ~NILE_POW_MCU_RESET;
     outportb(IO_NILE_POW_CNT, pow_cnt);
-    ws_busywait(MCU_RESET_WAIT_TIME);
+    ws_delay_us(MCU_RESET_WAIT_TIME);
     outportb(IO_NILE_POW_CNT, pow_cnt | NILE_POW_MCU_RESET);
 #endif
 
-    ws_busywait(MCU_BOOT_WAIT_TIME);
+    ws_delay_us(MCU_BOOT_WAIT_TIME);
 
 #ifndef LIBNILE_PCB_REV4
     outportb(IO_NILE_POW_CNT, prev_pow_cnt);

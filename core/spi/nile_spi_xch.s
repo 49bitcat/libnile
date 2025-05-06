@@ -65,8 +65,8 @@ nile_spi_xch:
     pop ds
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    // volatile uint16_t prev_bank = inportw(IO_BANK_2003_ROM1);
-    in ax, IO_BANK_2003_ROM1
+    // volatile uint16_t prev_bank = inportw(WS_CART_EXTBANK_ROM1_PORT);
+    in ax, WS_CART_EXTBANK_ROM1_PORT
     mov bx, ax
 #endif
 
@@ -75,9 +75,9 @@ nile_spi_xch:
     mov ah, 0xFF
     jz 9f
 
-    // outportw(IO_BANK_2003_ROM1, NILE_SEG_ROM_SPI_RX);
+    // outportw(WS_CART_EXTBANK_ROM1_PORT, NILE_SEG_ROM_SPI_RX);
     mov ax, NILE_SEG_ROM_SPI_RX
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 
     // flip SPI buffer
     in al, (IO_NILE_SPI_CNT+1)
@@ -88,12 +88,12 @@ nile_spi_xch:
     mov al, [0x0000]
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    // outportw(IO_BANK_2003_ROM1, prev_bank);
+    // outportw(WS_CART_EXTBANK_ROM1_PORT, prev_bank);
     xchg ax, bx
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
     mov ax, bx
 #endif
 
 9:
     pop ds
-    WF_PLATFORM_RET
+    IA16_RET

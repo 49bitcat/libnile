@@ -61,11 +61,11 @@ nile_disk_read_inner:
     // BX = sectors to read
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    in ax, IO_BANK_2003_ROM1
+    in ax, WS_CART_EXTBANK_ROM1_PORT
     push ax
 #endif
     mov ax, NILE_SEG_ROM_SPI_RX
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 
     in ax, IO_NILE_SPI_CNT
     __waitread1
@@ -130,7 +130,7 @@ nile_disk_read_inner_loop:
 #ifndef LIBNILE_CLOBBER_ROM1
     mov si, ax
     pop ax
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
     mov ax, si
 #endif
 
@@ -138,4 +138,4 @@ nile_disk_read_inner_loop:
     pop ds
     pop di
     pop es
-    WF_PLATFORM_RET
+    IA16_RET
