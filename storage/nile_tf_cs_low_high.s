@@ -47,7 +47,7 @@ nile_tf_cs_high:
 8:
     mov al, 1
 9:
-    WF_PLATFORM_RET
+    IA16_RET
 
     .align 2
     .global nile_tf_cs_low
@@ -65,9 +65,9 @@ nile_tf_cs_low:
     // m_nile_spi_wait_ready_al_no_timeout
 
     xor ax, ax
-    WF_PLATFORM_CALL nile_tf_wait_ready
+    IA16_CALL nile_tf_wait_ready
     test al, al
     mov al, 0
     jz 8b
 9:
-    WF_PLATFORM_RET
+    IA16_RET

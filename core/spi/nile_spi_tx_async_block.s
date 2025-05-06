@@ -88,4 +88,4 @@ nile_spi_tx_async_block:
 
     pop di
     pop si
-    WF_PLATFORM_RET
+    IA16_RET

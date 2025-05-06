@@ -43,4 +43,4 @@ nile_spi_abort:
     // Wait for start bit to be cleared
     call __nile_spi_wait_ready_near
 1:
-    WF_PLATFORM_RET
+    IA16_RET

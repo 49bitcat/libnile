@@ -38,11 +38,11 @@ nile_tf_wait_ready:
     push si
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    in ax, IO_BANK_2003_ROM1
+    in ax, WS_CART_EXTBANK_ROM1_PORT
     push ax
 #endif
     mov ax, NILE_SEG_ROM_SPI_RX
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 
     push 0x3000
     pop ds
@@ -76,11 +76,11 @@ nile_tf_wait_ready:
 9:
 #ifndef LIBNILE_CLOBBER_ROM1
     pop ax
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 #endif
 
     mov ax, dx
 
     pop si
     pop ds
-    WF_PLATFORM_RET
+    IA16_RET

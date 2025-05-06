@@ -35,5 +35,5 @@
     .global nile_spi_wait_ready
 nile_spi_wait_ready:
     call __nile_spi_wait_ready_near
-    WF_PLATFORM_RET
+    IA16_RET
 #endif

@@ -45,12 +45,12 @@ nile_spi_rx_sync_block:
     push dx // used later as ES:DI
     push ax
 
-    ss mov ax, [bx + WF_PLATFORM_CALL_STACK_OFFSET(0)]
+    ss mov ax, [bx + IA16_CALL_STACK_OFFSET(0)]
 
     mov bx, cx
     dec cx
     or ax, cx
-    WF_PLATFORM_CALL __nile_spi_rx_async_ax
+    IA16_CALL __nile_spi_rx_async_ax
     test al, al
     jz 9f
 
@@ -61,17 +61,17 @@ nile_spi_rx_sync_block:
 
     mov cx, bx
 #ifndef LIBNILE_CLOBBER_ROM1
-    // volatile uint16_t prev_bank = inportw(IO_BANK_2003_ROM1);
-    in ax, IO_BANK_2003_ROM1
+    // volatile uint16_t prev_bank = inportw(WS_CART_EXTBANK_ROM1_PORT);
+    in ax, WS_CART_EXTBANK_ROM1_PORT
     xchg ax, bx
 #endif
     // outportw(IO_NILE_SPI_CNT, new_cnt ^ NILE_SPI_BUFFER_IDX);
     in al, (IO_NILE_SPI_CNT+1)
     xor al, (NILE_SPI_BUFFER_IDX >> 8)
     out (IO_NILE_SPI_CNT+1), al
-    // outportw(IO_BANK_2003_ROM1, NILE_SEG_ROM_SPI_RX);
+    // outportw(WS_CART_EXTBANK_ROM1_PORT, NILE_SEG_ROM_SPI_RX);
     mov ax, NILE_SEG_ROM_SPI_RX
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 
     // memcpy(buf, MK_FP(0x3000, 0x0000), size);
     pop di
@@ -87,9 +87,9 @@ nile_spi_rx_sync_block:
 1:
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    // outportw(IO_BANK_2003_ROM1, prev_bank);
+    // outportw(WS_CART_EXTBANK_ROM1_PORT, prev_bank);
     xchg ax, bx
-    out IO_BANK_2003_ROM1, ax
+    out WS_CART_EXTBANK_ROM1_PORT, ax
 #endif
     mov ax, 1
 
@@ -98,8 +98,8 @@ nile_spi_rx_sync_block:
     pop es
     pop si
     pop ds
-    WF_PLATFORM_CALL nile_spi_abort
-    WF_PLATFORM_RET 0x2
+    IA16_CALL nile_spi_abort
+    IA16_RET 0x2
 
 9:
     add sp, 4 // remove pushed DX/AX

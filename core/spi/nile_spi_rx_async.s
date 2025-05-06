@@ -63,4 +63,4 @@ __nile_spi_rx_async_ax:
 
     mov ax, 1
 9:
-    WF_PLATFORM_RET
+    IA16_RET
