@@ -56,6 +56,7 @@
 
 #ifndef __ASSEMBLER__
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -144,7 +145,7 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
  * @return int16_t 0 on success, or error code on failure.
  * @see NILE_MCU_NATIVE_CMD
  */
-int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen);
+int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int buflen);
 
 /**
  * @brief Receive the response of a "native protocol" MCU command synchronously.
@@ -175,6 +176,47 @@ int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
  * @return int16_t The number of bytes received.
  */
 int16_t nile_mcu_native_recv_cmd_finish(void __far* buffer, uint16_t buflen);
+
+typedef enum {
+    NILE_MCU_NATIVE_MODE_CMD = 0x00,
+    NILE_MCU_NATIVE_MODE_EEPROM = 0x01,
+    NILE_MCU_NATIVE_MODE_RTC = 0x02,
+    NILE_MCU_NATIVE_MODE_CDC = 0x03,
+    NILE_MCU_NATIVE_MODE_STANDBY = 0xFF
+} nile_mcu_native_mode_t;
+
+static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
+    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x01, mode), NULL, 0);
+}
+
+static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint16_t buflen) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x03, 0), NULL, 0)) < 0) return result;
+    return nile_mcu_native_recv_cmd(buffer, buflen);
+}
+
+static inline int16_t nile_mcu_native_cdc_read_sync(void __far* buffer, uint16_t buflen) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x40, buflen), NULL, 0)) < 0) return result;
+    return nile_mcu_native_recv_cmd(buffer, buflen);
+}
+
+static inline int16_t nile_mcu_native_cdc_write_sync(const void __wf_cram* buffer, uint16_t buflen) {
+    int16_t result, bytes;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
+    return bytes;
+}
+
+static inline int16_t nile_mcu_native_cdc_write_async_start(const void __wf_cram* buffer, uint16_t buflen) {
+    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen);
+}
+
+static inline int16_t nile_mcu_native_cdc_write_async_finish(void) {
+    int16_t result, bytes;
+    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
+    return bytes;
+}
 
 #endif /* __ASSEMBLER__ */
 

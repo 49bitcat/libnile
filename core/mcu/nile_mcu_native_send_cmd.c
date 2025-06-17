@@ -24,7 +24,7 @@
 #include <ws.h>
 #include "nile.h"
 
-int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen) {
+int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int buflen) {
 	if (!nile_spi_tx_sync_block(&cmd, 2))
 		return NILE_MCU_NATIVE_ERROR_SPI;
 	if (buflen) {
