@@ -126,25 +126,55 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
 }
 
 /**
+ * @brief SPI communication error.
+ */
+#define NILE_MCU_NATIVE_ERROR_SPI -1
+
+/**
+ * @brief MCU communication error.
+ */
+#define NILE_MCU_NATIVE_ERROR_MCU -2
+
+/**
  * @brief Send a "native protocol" MCU command.
  * 
  * @param cmd Command.
  * @param buffer Optional parameter buffer.
  * @param buflen Size of the parameter buffer (0 - 512 bytes).
+ * @return int16_t 0 on success, or error code on failure.
  * @see NILE_MCU_NATIVE_CMD
  */
-bool nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen);
+int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen);
 
 /**
- * @brief Receive the response of a "native protocol" MCU command.
+ * @brief Receive the response of a "native protocol" MCU command synchronously.
  *
  * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
  * 
  * @param buffer Buffer to receive response to.
  * @param buflen The size of the buffer.
- * @return uint16_t The number of bytes received.
+ * @return int16_t The number of bytes received.
  */
-uint16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen);
+int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen);
+
+/**
+ * @brief Start receiving the response of a "native protocol" MCU command asynchronously.
+ * 
+ * @param resplen The maximum size of the response.
+ * @return int16_t 0 on success, or error code on failure.
+ */
+int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
+
+/**
+ * @brief Finish receiving the response of a "native protocol" MCU command.
+ *
+ * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
+ * 
+ * @param buffer Buffer to receive response to.
+ * @param buflen The size of the buffer.
+ * @return int16_t The number of bytes received.
+ */
+int16_t nile_mcu_native_recv_cmd_finish(void __far* buffer, uint16_t buflen);
 
 #endif /* __ASSEMBLER__ */
 

@@ -24,12 +24,12 @@
 #include <ws.h>
 #include "nile.h"
 
-bool nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen) {
+int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void *buffer, int buflen) {
 	if (!nile_spi_tx_sync_block(&cmd, 2))
-		return false;
+		return NILE_MCU_NATIVE_ERROR_SPI;
 	if (buflen) {
 		if (!nile_spi_tx_sync_block(buffer, buflen))
-			return false;
+			return NILE_MCU_NATIVE_ERROR_SPI;
 	}
-	return true;
+	return 0;
 }

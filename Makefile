@@ -6,7 +6,7 @@ WONDERFUL_TOOLCHAIN ?= /opt/wonderful
 TARGET ?= wswan/medium
 DESTDIR ?= dist/$(TARGET)
 
-DEFINES :=
+DEFINES := -DLIBWS_USE_EXTBANK
 TARGET_PATH = $(TARGET)
 
 ifeq ($(TARGET),ipl1)
