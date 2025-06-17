@@ -168,10 +168,8 @@ int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
 
 /**
  * @brief Finish receiving the response of a "native protocol" MCU command.
- *
- * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
  * 
- * @param buffer Buffer to receive response to.
+ * @param buffer Buffer to copy response to.
  * @param buflen The size of the buffer.
  * @return int16_t The number of bytes received.
  */
@@ -209,12 +207,14 @@ static inline int16_t nile_mcu_native_cdc_write_sync(const void __wf_cram* buffe
 }
 
 static inline int16_t nile_mcu_native_cdc_write_async_start(const void __wf_cram* buffer, uint16_t buflen) {
-    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen);
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen)) < 0) return result;
+    return nile_mcu_native_recv_cmd_start(2);
 }
 
 static inline int16_t nile_mcu_native_cdc_write_async_finish(void) {
     int16_t result, bytes;
-    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 0) return result;
     return bytes;
 }
 
