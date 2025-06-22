@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_FLASH_H__
-#define __NILE_FLASH_H__
+#ifndef NILE_FLASH_H_
+#define NILE_FLASH_H_
 
 #include <wonderful.h>
 #include "hardware.h"
@@ -177,4 +177,4 @@ bool nile_flash_wait_ready(void);
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* __NILE_FLASH_H__ */
+#endif /* NILE_FLASH_H_ */

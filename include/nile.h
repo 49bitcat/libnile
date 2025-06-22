@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_H__
-#define __NILE_H__
+#ifndef NILE_H_
+#define NILE_H_
 
 #include <wonderful.h>
 #include "nile/hardware.h"
@@ -30,5 +30,6 @@
 #include "nile/flash.h"
 #include "nile/mcu.h"
 #include "nile/ipc.h"
+#include "nile/flash_layout.h"
 
-#endif /* __NILE_H__ */
+#endif /* NILE_H_ */

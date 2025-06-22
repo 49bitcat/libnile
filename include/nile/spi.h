@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_SPI_H__
-#define __NILE_SPI_H__
+#ifndef NILE_SPI_H_
+#define NILE_SPI_H_
 
 #include <wonderful.h>
 #include "hardware.h"
@@ -158,4 +158,4 @@ uint16_t nile_spi_xch(uint8_t value);
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* __NILE_SPI_H__ */
+#endif /* NILE_SPI_H_ */

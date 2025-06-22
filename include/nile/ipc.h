@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_IPC_H__
-#define __NILE_IPC_H__
+#ifndef NILE_IPC_H_
+#define NILE_IPC_H_
 
 #include <wonderful.h>
 
@@ -103,4 +103,4 @@ _Static_assert(sizeof(nile_ipc_t) == 512, "nile_ipc_t size not equal to 512");
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* __NILE_IPC_H__ */
+#endif /* NILE_IPC_H_ */

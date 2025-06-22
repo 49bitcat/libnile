@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_CORE_H__
-#define __NILE_CORE_H__
+#ifndef NILE_CORE_H_
+#define NILE_CORE_H_
 
 #include <wonderful.h>
 #include "hardware.h"
@@ -64,4 +64,4 @@ void nile_reboot(void);
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* __NILE_CORE_H__ */
+#endif /* NILE_CORE_H_ */

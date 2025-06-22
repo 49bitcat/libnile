@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_HARDWARE_H__
-#define __NILE_HARDWARE_H__
+#ifndef NILE_HARDWARE_H_
+#define NILE_HARDWARE_H_
 
 #include <wonderful.h>
 
@@ -87,4 +87,4 @@
 #define IO_NILE_IRQ_STATUS 0xE9
 #define NILE_IRQ_MCU       0x01
 
-#endif /* __NILE_HARDWARE_H__ */
+#endif /* NILE_HARDWARE_H_ */

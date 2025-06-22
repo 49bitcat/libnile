@@ -30,8 +30,8 @@
  * library is based on: http://elm-chan.org/fsw/ff/
  */
 
-#ifndef __NILEFS_H__
-#define __NILEFS_H__
+#ifndef NILEFS_H_
+#define NILEFS_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -44,4 +44,4 @@
  */
 void nilefs_eject(void);
 
-#endif /* __NILEFS_H__ */
+#endif /* NILEFS_H_ */

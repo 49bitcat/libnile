@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __NILE_MCU_H__
-#define __NILE_MCU_H__
+#ifndef NILE_MCU_H_
+#define NILE_MCU_H_
 
 #include <wonderful.h>
 #include "hardware.h"
@@ -220,4 +220,4 @@ static inline int16_t nile_mcu_native_cdc_write_async_finish(void) {
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* __NILE_MCU_H__ */
+#endif /* NILE_MCU_H_ */
