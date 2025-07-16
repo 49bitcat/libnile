@@ -31,8 +31,8 @@
 
     .section .fartext.s.libnile, "ax"
     .align 2
-    .global nile_reboot
-nile_reboot:
+    .global nile_soft_reset
+nile_soft_reset:
     // disable interrupts
     cli
 
@@ -46,6 +46,13 @@ nile_reboot:
     // hide display
     out 0x00, ax
 
+#ifdef __IA16_CMODEL_TINY__
+    // tiny model: we're executing from SRAM or IRAM,
+    // so just jump to ROM directly
+    out 0xC0, al
+    out IO_NILE_SEG_MASK, ax
+    .byte 0xEA, 0x00, 0x00, 0xFF, 0xFF
+#else
     // push 0xFFFF
     dec ax
     push ax
@@ -54,8 +61,23 @@ nile_reboot:
     push ax
     dec ax
 
-    // jump to 0xFFFF:0x0000
-    // this code takes advantage of V30MZ prefetch
-    out 0xC0, al
-    out IO_NILE_SEG_MASK, ax
+    // FIXME: We could do the same thing we do above here,
+    // relying on CPU prefect to remember the final RETF
+    // to 0xFFFF:0000. However, nileswan-medem does not
+    // emulate prefetch, so it wouldn't work on emulators.
+
+    // push the following code:
+    // out 0xC0, ax
+    // out IO_NILE_SEG_MASK, ax
+    // nop
+    // jmp far 0xFFFF:0000
+    push 0xEA90
+    push 0xE4E7
+    push 0xC0E7
+
+    // jump to code on stack
+    mov bp, sp
+    push ss
+    push bp
     retf
+#endif

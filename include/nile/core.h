@@ -60,7 +60,7 @@ static inline void nile_io_unlock(void) {
 /**
  * @brief Jump back to cartridge IPL0 (soft reset).
  */
-void nile_reboot(void);
+void nile_soft_reset(void);
 
 #endif /* __ASSEMBLER__ */
 
