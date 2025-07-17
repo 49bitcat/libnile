@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,6 +25,10 @@
 #include "nile.h"
 
 int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int buflen) {
+	if (!nile_spi_wait_ready())
+		return NILE_MCU_NATIVE_ERROR_SPI;
+	outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK) | NILE_SPI_DEV_MCU);
+
 	if (!nile_spi_tx_sync_block(&cmd, 2))
 		return NILE_MCU_NATIVE_ERROR_SPI;
 	if (buflen) {
