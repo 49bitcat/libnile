@@ -24,9 +24,9 @@
 #include <ws.h>
 #include "nile.h"
 
-bool nile_spi_set_control(uint16_t value) {
+bool nile_spi_set_device(uint16_t value) {
     if (!nile_spi_wait_ready())
         return false;
-    outportw(IO_NILE_SPI_CNT, value);
+    outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & ~NILE_SPI_DEV_MASK) | value);
     return true;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,15 +58,37 @@ bool nile_spi_wait_ready(void);
  */
 bool nile_spi_abort(void);
 
+typedef enum {
+    NILE_SPI_SPEED_384KHZ = 0x00, ///< 384 KHz
+    NILE_SPI_SPEED_6MHZ = 0x01, ///< 6 MHz on SPHINX, 384 KHz on ASWAN
+    NILE_SPI_SPEED_24MHZ = 0x02 ///< 24 MHz (increased power draw)
+} nile_spi_speed_t;
+
 /**
- * @brief Safely set the control port.
+ * @brief Safely set the speed used by the SPI controller.
+ *
+ * This does not set the speed expected by the MCU!
+ * 
+ * @param speed SPI controller speed.
+ */
+bool nile_spi_set_speed(nile_spi_speed_t speed);
+
+/**
+ * @brief Safely set the device targetted by the SPI controller.
+ *
+ * @param device SPI device.
+ */
+bool nile_spi_set_device(uint16_t device);
+
+/**
+ * @brief Safely configure the control port.
  */
 bool nile_spi_set_control(uint16_t value);
 
 /**
  * @brief Flip the currently accessible SPI buffer.
  */
-static inline void nile_spi_buffer_flip(void) {
+static inline void nile_spi_flip_buffer(void) {
     outportb(IO_NILE_SPI_CNT + 1, inportb(IO_NILE_SPI_CNT + 1) ^ (NILE_SPI_BUFFER_IDX >> 8));
 }
 

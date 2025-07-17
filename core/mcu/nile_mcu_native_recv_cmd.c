@@ -24,6 +24,7 @@
 #include <wonderful.h>
 #include <ws.h>
 #include "nile.h"
+#include "nile/spi.h"
 
 int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen) {
     uint16_t len, resp_hdr;
@@ -63,7 +64,7 @@ int16_t nile_mcu_native_recv_cmd_finish(void __far* buffer, uint16_t buflen) {
 
     int16_t result = 0;
     
-    nile_spi_buffer_flip();
+    nile_spi_flip_buffer();
     ws_bank_with_rom1(NILE_SEG_ROM_SPI_RX, {
         resp_hdr = *((uint16_t __far*) MK_FP(0x3000, 0x0000));
         if (resp_hdr & 1) {

@@ -24,9 +24,18 @@
 #include <ws.h>
 #include "nile.h"
 
-bool nile_spi_set_control(uint16_t value) {
+bool nile_spi_set_speed(nile_spi_speed_t speed) {
     if (!nile_spi_wait_ready())
         return false;
-    outportw(IO_NILE_SPI_CNT, value);
+
+    if (ws_system_is_color_active()) {
+        uint8_t color_cfg = inportb(WS_SYSTEM_CTRL_COLOR_PORT);
+        outportb(WS_SYSTEM_CTRL_COLOR_PORT,
+            speed == NILE_SPI_SPEED_6MHZ ? (color_cfg | WS_SYSTEM_CTRL_COLOR_CART_FAST_CLOCK) : (color_cfg & ~WS_SYSTEM_CTRL_COLOR_CART_FAST_CLOCK));
+    }
+
+    uint16_t cfg = inportw(IO_NILE_SPI_CNT);
+    outportw(IO_NILE_SPI_CNT, speed == NILE_SPI_SPEED_24MHZ ? (cfg & ~NILE_SPI_CLOCK_CART) : (cfg | NILE_SPI_CLOCK_CART));
+
     return true;
 }

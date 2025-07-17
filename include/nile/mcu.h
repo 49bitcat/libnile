@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -176,15 +176,27 @@ int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
 int16_t nile_mcu_native_recv_cmd_finish(void __far* buffer, uint16_t buflen);
 
 typedef enum {
-    NILE_MCU_NATIVE_MODE_CMD = 0x00,
-    NILE_MCU_NATIVE_MODE_EEPROM = 0x01,
-    NILE_MCU_NATIVE_MODE_RTC = 0x02,
-    NILE_MCU_NATIVE_MODE_CDC = 0x03,
-    NILE_MCU_NATIVE_MODE_STANDBY = 0xFF
+    NILE_MCU_NATIVE_MODE_CMD = 0x00, ///< Native command mode.
+    NILE_MCU_NATIVE_MODE_EEPROM = 0x01, ///< EEPROM emulation mode.
+    NILE_MCU_NATIVE_MODE_RTC = 0x02, ///< RTC emulation mode.
+    NILE_MCU_NATIVE_MODE_CDC = 0x03, ///< CDC output-only mode.
+    NILE_MCU_NATIVE_MODE_STANDBY = 0xFF ///< MCU standby mode - will not respond to further SPI messages until reset.
 } nile_mcu_native_mode_t;
 
+/**
+ * @brief Switch the mode in which the MCU is operating.
+ */
 static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
     return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x01, mode), NULL, 0);
+}
+
+/**
+ * @brief Tell the MCU to operate at a specific SPI speed.
+ *
+ * This does not actually change the speed used by the cartridge by itself!
+ */
+static inline int16_t nile_mcu_native_mcu_spi_set_speed_sync(uint8_t speed) {
+    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x02, speed), NULL, 0);
 }
 
 static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint16_t buflen) {
