@@ -137,7 +137,7 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
 #define NILE_MCU_NATIVE_ERROR_MCU -2
 
 /**
- * @brief Send a "native protocol" MCU command.
+ * @brief Send a "native protocol" MCU command asynchronously.
  * 
  * @param cmd Command.
  * @param buffer Optional parameter buffer.
@@ -145,7 +145,11 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
  * @return int16_t 0 on success, or error code on failure.
  * @see NILE_MCU_NATIVE_CMD
  */
-int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int buflen);
+static inline int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __far* buffer, int buflen) {
+    int16_t __nile_mcu_native_send_cmd_async(uint16_t cmd, int buflen, const void __far* buffer);
+    return __nile_mcu_native_send_cmd_async(cmd, buflen, buffer);
+}
+// int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int buflen);
 
 /**
  * @brief Receive the response of a "native protocol" MCU command synchronously.

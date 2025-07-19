@@ -29,6 +29,9 @@
     .code16
     .intel_syntax noprefix
 
+    // Wait for SPI to become ready, minding the timeout.
+    // Corrupts DX, CX, AX.
+
     .section .fartext.s.libnile, "ax"
     .align 2
     .global __nile_spi_wait_ready_near

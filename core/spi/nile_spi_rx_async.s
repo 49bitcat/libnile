@@ -54,11 +54,11 @@ __nile_spi_rx_async_ax:
 
     // uint16_t cnt = inportw(IO_NILE_SPI_CNT);
     in ax, IO_NILE_SPI_CNT
-    // uint16_t new_cnt = ((size - 1) | mode) | (cnt & 0x7800);
+    // uint16_t new_cnt = ((size - 1) | mode) | (cnt & 0x7800) | NILE_SPI_START;
     and ax, NILE_SPI_CFG_MASK
     xor ax, dx
     or ax, NILE_SPI_START
-    // outportw(IO_NILE_SPI_CNT, new_cnt | NILE_SPI_START);
+    // outportw(IO_NILE_SPI_CNT, new_cnt);
     out IO_NILE_SPI_CNT, ax
 
     mov ax, 1
