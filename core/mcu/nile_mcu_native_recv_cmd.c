@@ -29,6 +29,11 @@
 int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen) {
     uint16_t len, resp_hdr;
 
+    // Load-bearing delay!
+    // In rare edge cases, the MCU doesn't switch back to sending 0xFF bytes fast enough,
+    // confusing WAIT_READ.
+    ws_delay_us(50);
+
     // Read MCU response header from SPI
     if (!nile_spi_rx_sync_block(&resp_hdr, 2, NILE_SPI_MODE_WAIT_READ))
         return NILE_MCU_NATIVE_ERROR_SPI;

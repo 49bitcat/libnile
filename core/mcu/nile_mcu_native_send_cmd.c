@@ -29,10 +29,10 @@ int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __wf_cram* buffer, int
 		return NILE_MCU_NATIVE_ERROR_SPI;
 	outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK) | NILE_SPI_DEV_MCU);
 
-	if (!nile_spi_tx_sync_block(&cmd, 2))
+	if (!nile_spi_tx_async_block(&cmd, 2))
 		return NILE_MCU_NATIVE_ERROR_SPI;
 	if (buflen) {
-		if (!nile_spi_tx_sync_block(buffer, buflen))
+		if (!nile_spi_tx_async_block(buffer, buflen))
 			return NILE_MCU_NATIVE_ERROR_SPI;
 	}
 	return 0;

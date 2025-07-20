@@ -175,6 +175,18 @@ int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
  */
 int16_t nile_mcu_native_recv_cmd_finish(void __far* buffer, uint16_t buflen);
 
+static inline int16_t nile_mcu_native_recv_cmd_response_uint8(void) {
+    int16_t result; uint8_t bytes;
+    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 1)) < 0) return result;
+    return bytes;
+}
+
+static inline int16_t nile_mcu_native_recv_cmd_response_int16(void) {
+    int16_t result, bytes;
+    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 0) return result;
+    return bytes;
+}
+
 typedef enum {
     NILE_MCU_NATIVE_MODE_CMD = 0x00, ///< Native command mode.
     NILE_MCU_NATIVE_MODE_EEPROM = 0x01, ///< EEPROM emulation mode.
@@ -196,7 +208,11 @@ static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
  * This does not actually change the speed used by the cartridge by itself!
  */
 static inline int16_t nile_mcu_native_mcu_spi_set_speed_sync(uint8_t speed) {
-    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x02, speed), NULL, 0);
+    int16_t result;
+    uint8_t op_result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x02, speed), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&op_result, 1)) < 0) return result;
+    return op_result;
 }
 
 static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint16_t buflen) {
@@ -223,11 +239,26 @@ static inline int16_t nile_mcu_native_cdc_write_async_start(const void __wf_cram
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen)) < 0) return result;
     return nile_mcu_native_recv_cmd_start(2);
 }
+#define nile_mcu_native_cdc_write_async_finish nile_mcu_native_recv_cmd_response_int16
 
-static inline int16_t nile_mcu_native_cdc_write_async_finish(void) {
+static inline int16_t nile_mcu_native_cdc_available_sync(void) {
     int16_t result, bytes;
-    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x43, 0), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
     return bytes;
+}
+
+static inline int16_t nile_mcu_native_cdc_available_async_start(const void __wf_cram* buffer, uint16_t buflen) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x43, 0), buffer, buflen)) < 0) return result;
+    return nile_mcu_native_recv_cmd_start(2);
+}
+#define nile_mcu_native_cdc_available_async_finish nile_mcu_native_recv_cmd_response_int16
+
+static inline int16_t nile_mcu_native_cdc_clear_sync(void) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x44, 0xFF), NULL, 0)) < 0) return result;
+    return nile_mcu_native_recv_cmd(NULL, 0);
 }
 
 #endif /* __ASSEMBLER__ */
