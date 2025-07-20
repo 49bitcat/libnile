@@ -26,13 +26,14 @@
 #include "nile.h"
 #include "nile/spi.h"
 
+#define MCU_MIN_RESPONSE_DELAY_US 25
+
 int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen) {
     uint16_t len, resp_hdr;
 
     // Load-bearing delay!
-    // In rare edge cases, the MCU doesn't switch back to sending 0xFF bytes fast enough,
-    // confusing WAIT_READ.
-    ws_delay_us(50);
+    // TODO: Why here?
+    ws_delay_us(MCU_MIN_RESPONSE_DELAY_US);
 
     // Read MCU response header from SPI
     if (!nile_spi_rx_sync_block(&resp_hdr, 2, NILE_SPI_MODE_WAIT_READ))
@@ -56,6 +57,10 @@ int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen) {
 }
 
 int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen) {
+    // Load-bearing delay!
+    // TODO: Why here?
+    ws_delay_us(MCU_MIN_RESPONSE_DELAY_US);
+
     if (!nile_spi_rx_async(2 + resplen, NILE_SPI_MODE_WAIT_READ))
         return NILE_MCU_NATIVE_ERROR_SPI;
     return 0;
