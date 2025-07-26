@@ -170,6 +170,36 @@ static inline bool nile_flash_erase_part(uint8_t type, uint32_t address) {
     return __nile_flash_erase_address((((uint32_t) type) << 24) | address);
 }
 
+static inline uint8_t nile_flash_read_sr1(void) {
+    uint8_t __nile_flash_read_sr(uint8_t value);
+    return __nile_flash_read_sr(NILE_FLASH_CMD_RDSR1);
+}
+
+static inline uint8_t nile_flash_read_sr2(void) {
+    uint8_t __nile_flash_read_sr(uint8_t value);
+    return __nile_flash_read_sr(NILE_FLASH_CMD_RDSR2);
+}
+
+static inline uint8_t nile_flash_read_sr3(void) {
+    uint8_t __nile_flash_read_sr(uint8_t value);
+    return __nile_flash_read_sr(NILE_FLASH_CMD_RDSR3);
+}
+
+static inline bool nile_flash_write_sr1(uint8_t value) {
+    bool __nile_flash_write_sr(uint16_t value);
+    return __nile_flash_write_sr(NILE_FLASH_CMD_WRSR1 | (value << 8));
+}
+
+static inline bool nile_flash_write_sr2(uint8_t value) {
+    bool __nile_flash_write_sr(uint16_t value);
+    return __nile_flash_write_sr(NILE_FLASH_CMD_WRSR2 | (value << 8));
+}
+
+static inline bool nile_flash_write_sr3(uint8_t value) {
+    bool __nile_flash_write_sr(uint16_t value);
+    return __nile_flash_write_sr(NILE_FLASH_CMD_WRSR3 | (value << 8));
+}
+
 /**
  * @brief Wait until SPI flash is ready.
  */
