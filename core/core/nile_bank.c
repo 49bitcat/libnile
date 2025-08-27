@@ -44,6 +44,8 @@ void nile_bank_clear_mask(void) {
  */
 void nile_bank_unlock(void) {
 	uint16_t mask = inportw(IO_NILE_SEG_MASK);
+	if (!(mask & NILE_SEG_MASK_LOCK)) return;
+
 	uint16_t rom_mask = (mask >> NILE_SEG_MASK_ROM_SHIFT) & NILE_SEG_MASK_ROM_MASK;
 	uint16_t ram_mask = (mask >> NILE_SEG_MASK_RAM_SHIFT) & NILE_SEG_MASK_RAM_MASK;
 
@@ -51,7 +53,7 @@ void nile_bank_unlock(void) {
 	outportw(WS_CART_EXTBANK_ROM0_PORT, inportw(WS_CART_EXTBANK_ROM0_PORT) & rom_mask);
 	outportw(WS_CART_EXTBANK_ROM1_PORT, inportw(WS_CART_EXTBANK_ROM1_PORT) & rom_mask);
 
-	outportw(IO_NILE_SEG_MASK, inportw(IO_NILE_SEG_MASK) & ~NILE_SEG_MASK_LOCK);
+	outportw(IO_NILE_SEG_MASK, mask & ~NILE_SEG_MASK_LOCK);
 }
 
 /**
