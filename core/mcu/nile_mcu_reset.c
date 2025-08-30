@@ -25,9 +25,9 @@
 #include <ws.h>
 #include "nile.h"
 
-#define MCU_BOOT0_WAIT_TIME 50
-#define MCU_RESET_WAIT_TIME 100
-#define MCU_BOOT_WAIT_TIME 10000
+#define MCU_BOOT0_WAIT_TIME_US 50
+#define MCU_RESET_WAIT_TIME_US 100
+#define MCU_BOOT_WAIT_TIME_US 10000
 
 bool nile_mcu_reset(bool to_bootloader) {
     if (!nile_spi_wait_ready())
@@ -41,7 +41,7 @@ bool nile_mcu_reset(bool to_bootloader) {
     // Pull RESET low, then high.
     uint8_t pow = inportb(IO_NILE_POW_CNT) & ~NILE_POW_MCU_RESET;
     outportb(IO_NILE_POW_CNT, pow);
-    ws_delay_us(MCU_RESET_WAIT_TIME);
+    ws_delay_us(MCU_RESET_WAIT_TIME_US);
     outportb(IO_NILE_POW_CNT, pow | NILE_POW_MCU_RESET);
 #else
     // Set BOOT0 pin state. For booting from flash, pull low.
@@ -50,18 +50,18 @@ bool nile_mcu_reset(bool to_bootloader) {
     if (new_pow_cnt != pow_cnt) {
         pow_cnt = new_pow_cnt;
         outportb(IO_NILE_POW_CNT, pow_cnt);
-        ws_delay_us(MCU_BOOT0_WAIT_TIME);
+        ws_delay_us(MCU_BOOT0_WAIT_TIME_US);
     }
 
     // Pull RESET low, then high.
     pow_cnt &= ~NILE_POW_MCU_RESET;
     outportb(IO_NILE_POW_CNT, pow_cnt);
     pow_cnt |= NILE_POW_MCU_RESET;
-    ws_delay_us(MCU_RESET_WAIT_TIME);
+    ws_delay_us(MCU_RESET_WAIT_TIME_US);
     outportb(IO_NILE_POW_CNT, pow_cnt);
 #endif
 
-    ws_delay_us(MCU_BOOT_WAIT_TIME);
+    ws_delay_us(MCU_BOOT_WAIT_TIME_US);
     if (to_bootloader) {
         // If booting to bootloader, clear BOOT0 and handle ACK.
         pow_cnt &= ~NILE_POW_MCU_BOOT0;

@@ -20,22 +20,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef NILE_H_
-#define NILE_H_
+#ifndef NILE_MCU_RTC_H_
+#define NILE_MCU_RTC_H_
 
-#include <wonderful.h>
-#include "nile/hardware.h"
-#include "nile/core.h"
-#include "nile/spi.h"
-#include "nile/flash.h"
-#include "nile/mcu.h"
-#include "nile/ipc.h"
-#include "nile/flash_layout.h"
+#include "../mcu.h"
 
-#ifndef __ASSEMBLER__
-#include "nile/mcu/cdc.h"
-#include "nile/mcu/eeprom.h"
-#include "nile/mcu/rtc.h"
-#endif /* __ASSEMBLER__ */
+static inline int16_t nile_mcu_native_rtc_transaction_sync(
+    uint8_t cmd,
+    const void __far* inbuf, size_t inbuflen,
+    void __far* outbuf, size_t outbuflen
+) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x14, cmd), inbuf, inbuflen)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(outbuf, outbuflen)) < 0) return result;
+    return 0;
+}
 
-#endif /* NILE_H_ */
+#endif /* NILE_MCU_RTC_H_ */
