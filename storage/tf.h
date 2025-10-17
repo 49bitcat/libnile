@@ -30,6 +30,7 @@
 #define TFC_SEND_CSD             TFC_CMD(9)
 #define TFC_SEND_CID             TFC_CMD(10)
 #define TFC_STOP_TRANSMISSION    TFC_CMD(12)
+#define TFC_SEND_SSR             TFC_ACMD(13)
 #define TFC_SET_BLOCKLEN         TFC_CMD(16)
 #define TFC_READ_SINGLE_BLOCK    TFC_CMD(17)
 #define TFC_READ_MULTIPLE_BLOCK  TFC_CMD(18)

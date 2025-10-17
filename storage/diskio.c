@@ -298,6 +298,29 @@ card_init_complete_hc:
 
 bool nile_disk_read_inner(BYTE __far* buff, uint16_t count);
 
+__attribute__((noinline))
+static bool nile_tf_read_data(void __far* buff, uint16_t len) {
+	uint8_t resp[1];
+	
+	if (!nile_spi_rx_sync_block(resp, 1, NILE_SPI_MODE_WAIT_READ)) {
+		set_detail_code(0x11);
+		return false;
+	}
+	if (resp[0] != 0xFE) {
+		set_detail_code(0xE0 | resp[0]);
+		return false;
+	}
+	if (!nile_spi_rx_sync_block(buff, len, NILE_SPI_MODE_READ)) {
+		set_detail_code(0x13);
+		return false;
+	}
+	if (!nile_spi_rx_async(2, NILE_SPI_MODE_READ)) {
+		set_detail_code(0x14);
+		return false;
+	}
+	return true;
+}
+
 DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
@@ -362,20 +385,7 @@ disk_read_stop:
 			goto disk_read_end;
 		}
 
-		if (!nile_spi_rx_sync_block(resp, 1, NILE_SPI_MODE_WAIT_READ)) {
-			set_detail_code(0x11);
-			goto disk_read_end;
-		}
-		if (resp[0] != 0xFE) {
-			set_detail_code(0xE0 | resp[0]);
-			goto disk_read_end;
-		}
-		if (!nile_spi_rx_sync_block(buff, 512, NILE_SPI_MODE_READ)) {
-			set_detail_code(0x13);
-			goto disk_read_end;
-		}
-		if (!nile_spi_rx_async(2, NILE_SPI_MODE_READ)) {
-			set_detail_code(0x14);
+		if (!nile_tf_read_data(buff, 512)) {
 			goto disk_read_end;
 		}
 		buff += 512;
@@ -501,8 +511,91 @@ disk_read_end:
 
 #endif
 
+bool nilefs_read_card_csd(void __far* buff) {
+	uint8_t resp[2];
+	bool result = !nile_tf_command(TFC_SEND_CSD, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
+	nile_tf_cs_high();
+	return result;
+}
+
+bool nilefs_read_card_cid(void __far* buff) {
+	uint8_t resp[2];
+	bool result = !nile_tf_command(TFC_SEND_CID, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
+	nile_tf_cs_high();
+	return result;
+}
+
+bool nilefs_read_card_ssr(void __far* buff) {
+	uint8_t resp[2];
+	bool result = !nile_tf_command(TFC_SEND_SSR, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 64);
+	nile_tf_cs_high();
+	return result;
+}
+
+uint32_t nilefs_read_card_sector_count(void) {
+	uint8_t csd[16];
+	
+	if (nilefs_read_card_csd(csd)) {
+		switch (csd[0] >> 6) {
+		case 0: {
+			uint16_t block_size = 1 << (csd[5] & 0xF);
+			uint8_t size_mul_shift = ((csd[10] >> 7) | (csd[9] << 1)) & 0x7;
+			uint16_t size_mul = 1 << (size_mul_shift + 2);
+			uint16_t size = ((csd[8] >> 6) | (csd[7] << 2) | ((csd[6] & 0x3) << 10)) + 1;
+			return ((uint32_t) size * size_mul * block_size) >> 9;
+		}
+		case 1: {
+			return ((csd[9] | (csd[8] << 8) | ((uint32_t) csd[7] << 16)) + 1L) << 10;
+		}
+		}
+	}
+	return 0;
+}
+
+static const uint8_t ws_rom alloc_unit_table[5] = {12, 16, 24, 32, 64};
+
+uint32_t nilefs_read_card_block_size(void) {
+	uint8_t csd[64];
+	
+	if (card_state & NILE_IPC_TF_TYPE_TF_NEW) {
+		if (nilefs_read_card_ssr(csd)) {
+			uint8_t shift = csd[10] >> 4;
+			if (shift >= 11)
+				return alloc_unit_table[shift - 11] * 2048UL;
+			return 16UL << shift;
+		}
+	} else {
+		if (nilefs_read_card_csd(csd)) {
+			if (card_state & NILE_IPC_TF_TYPE_MMC) {
+				uint8_t size = ((csd[10] >> 2) & 0x1F) + 1;
+				uint8_t mul = ((csd[10] & 0x3) << 3) + (csd[11] >> 5) + 1;
+				return size * mul;
+			} else {
+				return (((csd[10] & 0x3F) << 1) | (csd[11] >> 7)) + 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void *buff) {
-	if (cmd == CTRL_SYNC)
-		return RES_OK;
+	uint32_t v;
+
+#ifndef LIBNILE_IPL1
+	switch (cmd) {
+		case CTRL_SYNC:
+			return RES_OK;
+		case GET_BLOCK_SIZE:
+			v = nilefs_read_card_block_size();
+			*((DWORD*) buff) = v;
+			return v ? RES_OK : RES_ERROR;
+		case GET_SECTOR_COUNT:
+			v = nilefs_read_card_sector_count();
+			*((DWORD*) buff) = v;
+			return v ? RES_OK : RES_ERROR;
+	}
+#endif
+
 	return RES_PARERR;
 }

@@ -39,7 +39,11 @@
 
 // FIXME: Re-enable when wf-tools fixes its linker GC
 #ifndef FF_USE_MKFS
+#ifdef LIBNILE_IPL1
 #define FF_USE_MKFS	0
+#else
+#define FF_USE_MKFS	1
+#endif
 #endif
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 

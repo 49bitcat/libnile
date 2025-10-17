@@ -44,4 +44,20 @@
  */
 void nilefs_eject(void);
 
+#define NILEFS_CARD_CID_SIZE 16
+
+/**
+ * @brief Read the TF card's CID.
+ * 
+ * @param buff Pointer to 16-byte memory region.
+ */
+bool nilefs_read_card_cid(void __far* buff);
+
+/**
+ * @brief Read the TF card's size, in 512-byte sectors.
+ * 
+ * @return uint32_t Sector count, or 0 on failure.
+ */
+uint32_t nilefs_read_card_sector_count(void);
+
 #endif /* NILEFS_H_ */
