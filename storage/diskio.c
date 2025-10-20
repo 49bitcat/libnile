@@ -175,6 +175,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		return STA_NOINIT;
 
 	set_detail_code(0);
+	uint16_t uses_fast_clock = inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_CART;
 	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART);
 	nile_tf_cs_high();
 
@@ -290,7 +291,7 @@ card_init_complete_hc:
 	if (!nile_spi_wait_ready())
 		return 0;
 	outportb(IO_NILE_POW_CNT, powcnt | NILE_POW_CLOCK);
-	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_FAST);
+	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | uses_fast_clock);
 	if (!nile_spi_rx_async(1, NILE_SPI_MODE_READ))
 		return 0;
 	return 0;
