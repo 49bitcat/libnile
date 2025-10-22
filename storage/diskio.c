@@ -110,13 +110,14 @@ static uint8_t nile_tf_read_response_r1b(void) {
 
 static uint8_t nile_tf_command(uint8_t cmd, uint32_t arg, uint8_t crc, uint8_t *recv_buffer, uint16_t size) {
 	uint8_t cmd_buffer[6];
-	recv_buffer[0] = 0xFF;
 
 	if (cmd & 0x80) {
-		uint8_t resp = nile_tf_command(TFC_APP_PREFIX, 0x95, 0, recv_buffer, 1);
+		uint8_t resp = nile_tf_command(TFC_APP_PREFIX, 0, 0x95, recv_buffer, 1);
 		if (resp & ~TFC_R1_IDLE)
 			return resp;
 	}
+
+	recv_buffer[0] = 0xFF;
 
 	if (!nile_tf_cs_high())
 		return 0xFF;
@@ -124,10 +125,12 @@ static uint8_t nile_tf_command(uint8_t cmd, uint32_t arg, uint8_t crc, uint8_t *
 		return 0xFF;
 
 	cmd_buffer[0] = cmd & 0x7F;
-	cmd_buffer[1] = arg >> 24;
+	/* cmd_buffer[1] = arg >> 24;
 	cmd_buffer[2] = arg >> 16;
 	cmd_buffer[3] = arg >> 8;
-	cmd_buffer[4] = arg;
+	cmd_buffer[4] = arg; */
+	*((uint16_t*) (cmd_buffer + 1)) = __builtin_bswap16(arg >> 16);
+	*((uint16_t*) (cmd_buffer + 3)) = __builtin_bswap16(arg);
 	cmd_buffer[5] = crc;
 	if (!nile_spi_tx_async_block(cmd_buffer, sizeof(cmd_buffer)))
 		return 0xFF;
