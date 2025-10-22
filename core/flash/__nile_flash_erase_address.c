@@ -27,11 +27,9 @@
 
 bool __nile_flash_erase_address(uint32_t address) {
     bool result = false;
-    uint8_t cmd[4];
-    cmd[0] = address >> 24;
-    cmd[1] = address >> 16;
-    cmd[2] = address >> 8;
-    cmd[3] = address;
+    uint16_t cmd[2];
+    cmd[0] = __builtin_bswap16(address >> 16);
+    cmd[1] = __builtin_bswap16(address);
 
     if (!nile_flash_write_enable())
         goto error;

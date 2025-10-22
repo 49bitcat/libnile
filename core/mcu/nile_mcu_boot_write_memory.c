@@ -25,11 +25,9 @@
 #include "nile.h"
 
 bool nile_mcu_boot_write_memory(uint32_t address, const void __far* buffer, uint16_t buflen) {
-    uint8_t cbuffer[4];
-    cbuffer[0] = address >> 24;
-    cbuffer[1] = address >> 16;
-    cbuffer[2] = address >> 8;
-    cbuffer[3] = address;
+    uint16_t cbuffer[2];
+    cbuffer[0] = __builtin_bswap16(address >> 16);
+    cbuffer[1] = __builtin_bswap16(address);
 
     if (!nile_mcu_boot_send_cmd(NILE_MCU_BOOT_WRITE_MEMORY))
         return false;

@@ -25,11 +25,9 @@
 #include "nile.h"
 
 bool nile_mcu_boot_jump(uint32_t address) {
-    uint8_t buffer[4];
-    buffer[0] = address >> 24;
-    buffer[1] = address >> 16;
-    buffer[2] = address >> 8;
-    buffer[3] = address;
+    uint16_t buffer[2];
+    buffer[0] = __builtin_bswap16(address >> 16);
+    buffer[1] = __builtin_bswap16(address);
 
     if (!nile_mcu_boot_send_cmd(NILE_MCU_BOOT_JUMP))
         return false;

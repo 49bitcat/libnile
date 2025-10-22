@@ -33,8 +33,7 @@ bool nile_flash_write_page(const void __far* buffer, uint32_t address, uint16_t 
     uint8_t cmd[4];
     cmd[0] = NILE_FLASH_CMD_WRITE;
     cmd[1] = address >> 16;
-    cmd[2] = address >> 8;
-    cmd[3] = address;
+    *((uint16_t*) (cmd + 2)) = __builtin_bswap16(address);
 
     if (!nile_flash_write_enable())
         goto error;
