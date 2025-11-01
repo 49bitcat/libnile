@@ -30,7 +30,7 @@ bool nile_flash_read(void __far* buffer, uint32_t address, uint16_t size) {
     uint8_t cmd[4];
     cmd[0] = NILE_FLASH_CMD_READ;
     cmd[1] = address >> 16;
-    *((uint16_t*) (cmd + 2)) = __builtin_bswap16(address);
+    *((uint16_t __wf_cstack*) (cmd + 2)) = __builtin_bswap16(address);
 
     nile_spi_init_flash_cs_low();
 

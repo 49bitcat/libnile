@@ -39,7 +39,7 @@
 
 // FIXME: Re-enable when wf-tools fixes its linker GC
 #ifndef FF_USE_MKFS
-#ifdef LIBNILE_IPL1
+#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_MKFS	0
 #else
 #define FF_USE_MKFS	1
@@ -48,7 +48,7 @@
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
 
-#ifdef LIBNILE_IPL1
+#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_FASTSEEK	0
 #else
 #define FF_USE_FASTSEEK	1
@@ -73,7 +73,7 @@
 #define FF_USE_FORWARD	0
 /* This option switches f_forward() function. (0:Disable or 1:Enable) */
 
-#ifdef LIBNILE_IPL1
+#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_STRFUNC	0
 #else
 #define FF_USE_STRFUNC	2
@@ -141,7 +141,11 @@
 #ifdef LIBNILE_IPL1
 #define FF_USE_LFN		0
 #else
+#ifdef __IA16_CALLCVT_NO_ASSUME_SS_DATA
+#define FF_USE_LFN		1
+#else
 #define FF_USE_LFN		2
+#endif
 #endif
 #define FF_MAX_LFN		255
 /* The FF_USE_LFN switches the support for LFN (long file name).
