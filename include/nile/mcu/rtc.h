@@ -32,8 +32,7 @@ static inline int16_t nile_mcu_native_rtc_transaction_sync(
 ) {
     int16_t result;
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x14, cmd), inbuf, inbuflen)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(outbuf, outbuflen)) < 0) return result;
-    return 0;
+    return nile_mcu_native_recv_cmd(outbuf, outbuflen);
 }
 
 #endif /* NILE_MCU_RTC_H_ */

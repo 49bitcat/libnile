@@ -186,13 +186,13 @@ static inline int16_t nile_mcu_native_recv_cmd_response_none(void) {
 static inline int16_t nile_mcu_native_recv_cmd_response_uint8(void) {
     int16_t result;
     uint8_t bytes;
-    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 1)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 1)) < 1) return result;
     return bytes;
 }
 
 static inline int16_t nile_mcu_native_recv_cmd_response_int16(void) {
-    int16_t result, bytes;
-    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 0) return result;
+    int16_t result, bytes = 0;
+    if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 1) return result;
     return bytes;
 }
 
@@ -220,7 +220,7 @@ static inline int16_t nile_mcu_native_mcu_spi_set_speed_sync(uint8_t speed) {
     int16_t result;
     uint8_t op_result;
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x02, speed), NULL, 0)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(&op_result, 1)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&op_result, 1)) < 1) return result;
     return op_result;
 }
 

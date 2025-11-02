@@ -32,9 +32,9 @@ static inline int16_t nile_mcu_native_cdc_read_sync(void __wf_cram* buffer, uint
 }
 
 static inline int16_t nile_mcu_native_cdc_write_sync(const void __far* buffer, uint16_t buflen) {
-    int16_t result, bytes;
+    int16_t result, bytes = 0;
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x41, buflen), buffer, buflen)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) <= 0) return result;
     return bytes;
 }
 
@@ -46,9 +46,9 @@ static inline int16_t nile_mcu_native_cdc_write_async_start(const void __far* bu
 #define nile_mcu_native_cdc_write_async_finish nile_mcu_native_recv_cmd_response_int16
 
 static inline int16_t nile_mcu_native_cdc_available_sync(void) {
-    int16_t result, bytes;
+    int16_t result, bytes = 0;
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x43, 0), NULL, 0)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&bytes, 2)) <= 0) return result;
     return bytes;
 }
 
