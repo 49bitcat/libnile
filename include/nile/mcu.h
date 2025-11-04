@@ -230,6 +230,17 @@ static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint
     return nile_mcu_native_recv_cmd(buffer, buflen);
 }
 
+typedef struct {
+    uint16_t major;
+    uint16_t minor;
+} nile_mcu_native_version_t;
+
+static inline int16_t nile_mcu_native_mcu_get_version_sync(void __far* buffer, uint16_t buflen) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x0F, 0), NULL, 0)) < 0) return result;
+    return nile_mcu_native_recv_cmd(buffer, buflen);
+}
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* NILE_MCU_H_ */

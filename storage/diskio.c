@@ -584,9 +584,9 @@ uint32_t nilefs_read_card_block_size(void) {
 }
 
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void *buff) {
+#ifndef LIBNILE_IPL1
 	uint32_t v;
 
-#ifndef LIBNILE_IPL1
 	switch (cmd) {
 		case CTRL_SYNC:
 			return RES_OK;
