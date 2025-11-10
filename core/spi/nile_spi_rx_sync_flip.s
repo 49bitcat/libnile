@@ -36,7 +36,7 @@
     // - AX = length
     // - DX = mode
 nile_spi_rx_sync_flip:
-    IA16_CALL nile_spi_rx_async
+    IA16_CALL_LOCAL nile_spi_rx_async
     test al, al
     jz 9f
     

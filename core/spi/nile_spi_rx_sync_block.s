@@ -50,7 +50,7 @@ nile_spi_rx_sync_block:
     mov bx, cx
     dec cx
     or ax, cx
-    IA16_CALL __nile_spi_rx_async_ax
+    IA16_CALL_LOCAL __nile_spi_rx_async_ax
     test al, al
     jz 9f
 
@@ -98,7 +98,7 @@ nile_spi_rx_sync_block:
     pop es
     pop si
     pop ds
-    IA16_CALL nile_spi_abort
+    IA16_CALL_LOCAL nile_spi_abort
     IA16_RET 0x2
 
 9:

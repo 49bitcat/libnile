@@ -68,5 +68,5 @@ nile_spi_xch_block:
     pop ax
 
     push (NILE_SPI_MODE_EXCH | NILE_SPI_BUFFER_IDX)
-    IA16_CALL nile_spi_rx_sync_block
+    IA16_CALL_LOCAL nile_spi_rx_sync_block
     IA16_RET

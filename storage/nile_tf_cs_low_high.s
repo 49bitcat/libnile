@@ -65,7 +65,7 @@ nile_tf_cs_low:
     // m_nile_spi_wait_ready_al_no_timeout
 
     xor ax, ax
-    IA16_CALL nile_tf_wait_ready
+    IA16_CALL_LOCAL nile_tf_wait_ready
     test al, al
     mov al, 0
     jz 8b
