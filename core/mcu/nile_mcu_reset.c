@@ -25,10 +25,9 @@
 #include <ws.h>
 #include "nile.h"
 
-#define MCU_BOOT0_START_WAIT_TIME_US 50
-#define MCU_RESET_WAIT_TIME_US 100
-#define MCU_BOOT0_END_WAIT_TIME_US 50
-#define MCU_BOOT_WAIT_TIME_US 10000
+#define MCU_BOOT0_START_WAIT_TIME_US 25
+#define MCU_RESET_WAIT_TIME_US 25
+#define MCU_BOOT_WAIT_TIME_US 8000
 
 bool nile_mcu_reset(bool to_bootloader) {
     if (!nile_spi_wait_ready())
@@ -63,7 +62,7 @@ bool nile_mcu_reset(bool to_bootloader) {
     outportb(IO_NILE_POW_CNT, pow_cnt);
 #endif
 
-    ws_delay_us(MCU_BOOT0_END_WAIT_TIME_US);
+    ws_delay_us(MCU_BOOT_WAIT_TIME_US);
 
     if (to_bootloader) {
         // If booting to bootloader, clear BOOT0 and handle ACK.
@@ -71,7 +70,6 @@ bool nile_mcu_reset(bool to_bootloader) {
         pow_cnt &= ~NILE_POW_MCU_BOOT0;
         outportb(IO_NILE_POW_CNT, pow_cnt);
 #endif
-        ws_delay_us(MCU_BOOT_WAIT_TIME_US);
         outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_MCU | NILE_SPI_CLOCK_CART);
         nile_spi_xch(NILE_MCU_BOOT_START);
         return nile_mcu_boot_wait_ack();
