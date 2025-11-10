@@ -54,6 +54,21 @@
 
 #define NILE_MCU_NATIVE_CMD(cmd, arg) (((cmd) & 0x7F) | ((arg) << 7))
 
+/**
+ * @brief The minimum delay time from nile_mcu_reset() to issuing SPI commands.
+ *
+ * This may change in future versions, as lower minimum delay times are tested.
+ */
+#define NILE_MCU_NATIVE_RESET_TIME_US 40000
+
+/**
+ * @brief The minimum delay time from nile_mcu_native_mcu_switch_mode() to using the
+ * requested mode.
+ *
+ * This may change in future versions, as lower minimum delay times are teste.d
+ */
+#define NILE_MCU_NATIVE_MODESWITCH_TIME_US 2500
+
 #ifndef __ASSEMBLER__
 #include <stdbool.h>
 #include <stddef.h>
