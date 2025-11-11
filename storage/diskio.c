@@ -37,6 +37,9 @@
 #include "tf.h"
 
 // FatFS API implementation
+//
+// TODO:
+// - Verify whether the "+1" stuff bytes for nile_tf_command() calls are useful for any device
 
 uint8_t card_state;
 
@@ -135,7 +138,7 @@ static uint8_t nile_tf_command(uint8_t cmd, uint32_t arg, uint8_t crc, uint8_t _
 	cmd_buffer[5] = crc;
 	if (!nile_spi_tx_async_block(cmd_buffer, sizeof(cmd_buffer)))
 		return 0xFF;
-	if (!nile_spi_rx_sync_block(recv_buffer, size + 1, NILE_SPI_MODE_WAIT_READ))
+	if (!nile_spi_rx_sync_block(recv_buffer, size, NILE_SPI_MODE_WAIT_READ))
 		return 0xFF;
 	return recv_buffer[0];
 }
@@ -195,21 +198,21 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	nile_spi_rx_async(10, NILE_SPI_MODE_READ);
 
 	// Reset card
-	if (nile_tf_command(TFC_GO_IDLE_STATE, 0, 0x95, buffer, 1) & ~TFC_R1_IDLE) {
+	if (nile_tf_command(TFC_GO_IDLE_STATE, 0, 0x95, buffer, 1+1) & ~TFC_R1_IDLE) {
 		// Error/No response
 		set_detail_code(1);
 		goto card_init_failed;
 	}
 
 	// Query interface configuration
-	if (!(nile_tf_command(TFC_SEND_IF_COND, 0x000001AA, 0x87, buffer, 5) & ~TFC_R1_IDLE)) {
+	if (!(nile_tf_command(TFC_SEND_IF_COND, 0x000001AA, 0x87, buffer, 5+1) & ~TFC_R1_IDLE)) {
 		// Check voltage/pattern value match
 		if ((buffer[3] & 0xF) == 0x1 && buffer[4] == 0xAA) {
 			// Attempt high-capacity card init
 			retries = MAX_RETRIES;
 			nile_spi_set_timeout(10);
 			while (--retries) {
-				uint8_t init_response = nile_tf_command(TFC_APP_SEND_OP_COND, 1UL << 30, 0x95, buffer, 1);
+				uint8_t init_response = nile_tf_command(TFC_APP_SEND_OP_COND, 1UL << 30, 0x95, buffer, 1+1);
 				if (init_response & ~TFC_R1_IDLE) {
 					// Initialization error
 					retries = 0;
@@ -226,7 +229,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 			// Card init successful?
 			if (card_state) {
 				// Read OCR to check for HC card
-				if (!nile_tf_command(TFC_READ_OCR, 0, 0x95, buffer, 5)) {
+				if (!nile_tf_command(TFC_READ_OCR, 0, 0x95, buffer, 5+1)) {
 					if (buffer[1] & 0x40) {
 						card_state = NILE_IPC_TF_BLOCK | NILE_IPC_TF_TYPE_TF_NEW;
 					}
@@ -245,7 +248,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	nile_spi_set_timeout(10);
 	uint8_t init_command = TFC_APP_SEND_OP_COND;
 	while (--retries) {
-		uint8_t init_response = nile_tf_command(init_command, 0, 0x95, buffer, 1);
+		uint8_t init_response = nile_tf_command(init_command, 0, 0x95, buffer, 1+1);
 		if (init_response & ~TFC_R1_IDLE) {
 			// Initialization error
 			if (init_command == TFC_APP_SEND_OP_COND) {
@@ -279,7 +282,7 @@ card_init_complete:
 card_init_complete_hc:
 	nile_spi_set_timeout(100);
 	// Set block size to 512
-	if (nile_tf_command(TFC_SET_BLOCKLEN, 512, 0x95, buffer, 1)) {
+	if (nile_tf_command(TFC_SET_BLOCKLEN, 512, 0x95, buffer, 1+1)) {
 		set_detail_code(4);
 		goto card_init_failed;
 	}
@@ -335,7 +338,7 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 
 #ifdef USE_MULTI_TRANSFER_READS
 	bool multi_transfer = count > 1;
-	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0)) {
+	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
 		set_detail_code(0x10);
 		goto disk_read_end;
 	}
@@ -385,7 +388,7 @@ disk_read_stop:
 	}
 #else
 	while (count) {
-		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0)) {
+		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
 			set_detail_code(0x10);
 			goto disk_read_end;
 		}
@@ -417,16 +420,16 @@ DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff,
 #ifdef USE_MULTI_TRANSFER_WRITES
 	bool multi_transfer = count > 1;
 	if (multi_transfer) {
-		if ((card_state & NILE_IPC_TF_TYPE_TF) && nile_tf_command(TFC_SET_BLOCK_COUNT, count, 0x95, resp, 1)) {
+		if ((card_state & NILE_IPC_TF_TYPE_TF) && nile_tf_command(TFC_SET_BLOCK_COUNT, count, 0x95, resp, 1+1)) {
 			set_detail_code(0x29);
 			goto disk_read_end;
 		}
-		if (nile_tf_command(TFC_WRITE_MULTIPLE_BLOCK, sector, 0x95, resp, 1)) {
+		if (nile_tf_command(TFC_WRITE_MULTIPLE_BLOCK, sector, 0x95, resp, 1+1)) {
 			set_detail_code(0x20);
 			goto disk_read_end;
 		}
 	} else {
-		if (nile_tf_command(TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
+		if (nile_tf_command(TFC_WRITE_BLOCK, sector, 0x95, resp, 1+1)) {
 			set_detail_code(0x20);
 			goto disk_read_end;
 		}
@@ -479,7 +482,7 @@ disk_read_stop:
 	}
 #else
 	while (count) {
-		if (nile_tf_command(TFC_WRITE_BLOCK, sector, 0x95, resp, 1)) {
+		if (nile_tf_command(TFC_WRITE_BLOCK, sector, 0x95, resp, 1+1)) {
 			set_detail_code(0x20);
 			goto disk_read_end;
 		}
@@ -517,21 +520,21 @@ disk_read_end:
 #endif
 
 bool nilefs_read_card_csd(void __far* buff) {
-	uint8_t resp[2];
+	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CSD, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
 	nile_tf_cs_high();
 	return result;
 }
 
 bool nilefs_read_card_cid(void __far* buff) {
-	uint8_t resp[2];
+	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CID, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
 	nile_tf_cs_high();
 	return result;
 }
 
 bool nilefs_read_card_ssr(void __far* buff) {
-	uint8_t resp[2];
+	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_SSR, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 64);
 	nile_tf_cs_high();
 	return result;
@@ -550,7 +553,7 @@ uint32_t nilefs_read_card_sector_count(void) {
 			return ((uint32_t) size * size_mul * block_size) >> 9;
 		}
 		case 1: {
-			return ((csd[9] | (csd[8] << 8) | ((uint32_t) csd[7] << 16)) + 1L) << 10;
+			return ((uint32_t) ((csd[9] | (csd[8] << 8) | (((uint32_t) csd[7]) << 16)) + 1L)) << 10;
 		}
 		}
 	}
