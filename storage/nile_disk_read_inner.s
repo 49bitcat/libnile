@@ -32,13 +32,6 @@
     .section .fartext.s.libnile, "ax"
     .align 2
 
-    .global __nile_movsw128
-__nile_movsw128:
-.rept 64
-    movsw
-.endr
-    ret
-
 .macro __waitread1
     and ax, NILE_SPI_CFG_MASK
     or ax, (NILE_SPI_START | NILE_SPI_MODE_WAIT_READ)
@@ -117,8 +110,12 @@ nile_disk_read_inner_loop:
     __waitread1
     call __nile_movsw128
     call __nile_movsw128
-    call __nile_movsw128
-    jmp nile_disk_read_inner_loop
+    push offset nile_disk_read_inner_loop
+__nile_movsw128:
+.rept 64
+    movsw
+.endr
+    ret
 
 8:
     call __nile_movsw128
