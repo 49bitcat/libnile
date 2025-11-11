@@ -78,25 +78,25 @@ nile_disk_read_inner_loop:
     xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
+    and ax, NILE_SPI_CFG_MASK
+
     // resp[0] == 0xFE?
     cmp byte ptr [si], 0xFE
-    mov al, 0
     jne 9f
 
-    // queue read 128 bytes
-    and ax, NILE_SPI_CFG_MASK
-    or ax, ((128-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
+    // queue read 144 bytes
+    or ax, ((144-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
     m_nile_spi_wait_ready_ax_no_timeout
 
-    // queue read 386 bytes
+    // queue read 370 bytes
     and ax, NILE_SPI_CFG_MASK
-    xor ax, ((386-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
+    xor ax, ((370-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
-    // read 128 bytes
-    call __nile_movsw128
+    // read 144 bytes
+    call __nile_movsw144
     xor si, si
 
     m_nile_spi_wait_ready_ax_no_timeout
@@ -104,23 +104,27 @@ nile_disk_read_inner_loop:
     xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
-    // read 384 bytes
+    // read 370 bytes
     dec bx
     jz 8f
     __waitread1
-    call __nile_movsw128
-    call __nile_movsw128
+    call __nile_movsw80
+    call __nile_movsw144
     push offset nile_disk_read_inner_loop
-__nile_movsw128:
-.rept 64
+__nile_movsw144:
+.rept 32
+    movsw
+.endr
+__nile_movsw80:
+.rept 40
     movsw
 .endr
     ret
 
 8:
-    call __nile_movsw128
-    call __nile_movsw128
-    call __nile_movsw128
+    call __nile_movsw80
+    call __nile_movsw144
+    call __nile_movsw144
     mov al, 1
 9:
 
