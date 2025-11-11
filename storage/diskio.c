@@ -310,6 +310,12 @@ bool nile_disk_read_inner(BYTE __far* buff, uint16_t count);
 #ifdef LIBNILEFS_ENABLE_LODSW_READ
 bool nile_disk_read_inner_lodsw(BYTE* buff, uint16_t count);
 #endif
+#ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
+bool nile_disk_read_inner_lodsw_gdma(BYTE* buff, uint16_t count);
+
+__attribute__((weak, section(".iramC.nilefs_gdma_scratch_buffer"), aligned(2)))
+uint8_t nilefs_gdma_scratch_buffer[0x200];
+#endif
 
 __attribute__((noinline))
 static bool nile_tf_read_data(void __far* buff, uint16_t len) {
@@ -361,6 +367,12 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 #if 1
 #ifdef LIBNILEFS_ENABLE_LODSW_READ
 	if (!(FP_OFF(buff) & 0x1FF) && FP_SEG(buff) == 0x1000 && inportb(WS_CART_BANK_FLASH_PORT) && !(inportb(WS_CART_EXTBANK_RAM_PORT + 1) & 1) && lodsw_supported()) {
+#ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
+		if (ws_system_is_color_active()) {
+			if (!nile_disk_read_inner_lodsw_gdma((BYTE*) FP_OFF(buff), count)) 
+				goto disk_read_stop;
+		} else 
+#endif
 		if (!nile_disk_read_inner_lodsw((BYTE*) FP_OFF(buff), count)) 
 			goto disk_read_stop;
 	} else
