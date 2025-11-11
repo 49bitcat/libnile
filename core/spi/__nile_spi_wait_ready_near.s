@@ -40,7 +40,7 @@ __nile_spi_wait_ready_near:
     .global nile_spi_wait_ready
 nile_spi_wait_ready:
 #endif
-    mov dx, [__nile_spi_timeout]
+    ss mov dx, [__nile_spi_timeout]
 
 1:
     // inner loop iterations for ~1ms
