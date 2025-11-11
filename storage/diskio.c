@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <ws.h>
+#include <ws/cart/rtc.h>
 #include <ws/display.h>
 #include <wsx/bcd.h>
 #include "nile.h"
@@ -29,6 +30,7 @@
 #include "nile/hardware.h"
 #include "nile/ipc.h"
 #include "nile/mcu/rtc.h"
+#include "internal.h"
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
@@ -305,6 +307,9 @@ card_init_complete_hc:
 }
 
 bool nile_disk_read_inner(BYTE __far* buff, uint16_t count);
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+bool nile_disk_read_inner_lodsw(BYTE* buff, uint16_t count);
+#endif
 
 __attribute__((noinline))
 static bool nile_tf_read_data(void __far* buff, uint16_t len) {
@@ -329,6 +334,16 @@ static bool nile_tf_read_data(void __far* buff, uint16_t len) {
 	return true;
 }
 
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+static bool lodsw_supported(void) {
+	volatile uint8_t old_emu_cnt = inportb(IO_NILE_EMU_CNT);
+	outportb(IO_NILE_EMU_CNT, NILE_EMU_LODSW_TRICK);
+	volatile bool result = (inportb(IO_NILE_EMU_CNT) & NILE_EMU_LODSW_TRICK) != 0;
+	outportb(IO_NILE_EMU_CNT, old_emu_cnt);
+	return result;
+}
+#endif
+
 DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
@@ -344,6 +359,12 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 	}
 
 #if 1
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+	if (!(FP_OFF(buff) & 0x1FF) && FP_SEG(buff) == 0x1000 && inportb(WS_CART_BANK_FLASH_PORT) && !(inportb(WS_CART_EXTBANK_RAM_PORT + 1) & 1) && lodsw_supported()) {
+		if (!nile_disk_read_inner_lodsw((BYTE*) FP_OFF(buff), count)) 
+			goto disk_read_stop;
+	} else
+#endif
 	if (!nile_disk_read_inner(buff, count)) 
 		goto disk_read_stop;
 #else
