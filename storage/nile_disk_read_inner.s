@@ -142,13 +142,6 @@ __nile_movsw80:
     IA16_RET
 
 #ifdef LIBNILEFS_ENABLE_LODSW_READ
-    .global __nile_lodsw512
-__nile_lodsw512:
-.rept 256
-    lodsw
-.endr
-    ret
-
     .global nile_disk_read_inner_lodsw
 nile_disk_read_inner_lodsw:
     cld
@@ -210,17 +203,25 @@ nile_disk_read_inner_lodsw_loop:
     xor ax, ((2-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
-    // read 512 bytes
-    call __nile_lodsw512
-
+    // wait for completion and flip buffer
     m_nile_spi_wait_ready_ax_no_timeout
 
+    xor ax, NILE_SPI_BUFFER_IDX
+    out IO_NILE_SPI_CNT, ax
+
+    // read 512 bytes
     dec bx
     jz 8f
     __waitread1
-    jmp nile_disk_read_inner_lodsw_loop
+    push offset nile_disk_read_inner_lodsw_loop
+__nile_lodsw512:
+.rept 256
+    lodsw
+.endr
+    ret
 
 8:
+    call __nile_lodsw512
     mov al, 1
 9:
 
