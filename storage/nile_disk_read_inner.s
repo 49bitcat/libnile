@@ -170,9 +170,6 @@ nile_disk_read_inner_lodsw:
     // DS = 0x3000 (read from ROM1)
     push 0x3000
     pop ds
-nile_disk_read_inner_lodsw_loop:
-    mov al, 0x00
-    out IO_NILE_EMU_CNT, al
 
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
@@ -188,7 +185,51 @@ nile_disk_read_inner_lodsw_loop:
     mov al, 0
     jne 9f
 
-    // queue read 512 bytes
+    // queue read 512 bytes to buffer A
+    and ax, NILE_SPI_CFG_MASK
+    or ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
+    out IO_NILE_SPI_CNT, ax
+
+nile_disk_read_inner_lodsw_loop:
+    mov al, 0x00
+    out IO_NILE_EMU_CNT, al
+
+    m_nile_spi_wait_ready_ax_no_timeout
+
+    // queue read 2 bytes to buffer B, buffer A is visible
+    and ax, NILE_SPI_CFG_MASK
+    xor ax, ((2-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
+    out IO_NILE_SPI_CNT, ax
+
+    // wait for completion
+    m_nile_spi_wait_ready_ax_no_timeout
+
+    dec bx
+    jz 8f
+
+    // read 1 byte to buffer B
+    __waitread1
+    
+    // Wait for SPI to be ready
+    call __nile_spi_wait_ready_near
+    test al, al
+    jz 9f
+
+    // make buffer B visible
+    in ax, IO_NILE_SPI_CNT
+    xor ax, NILE_SPI_BUFFER_IDX
+    out IO_NILE_SPI_CNT, ax
+
+    // resp[0] == 0xFE?
+    cmp byte ptr [0x0000], 0xFE
+    mov al, 0
+    jne 9f
+
+    // make buffer A visible again
+    xor ax, NILE_SPI_BUFFER_IDX
+    out IO_NILE_SPI_CNT, ax
+
+    // queue read 512 bytes to buffer A
     and ax, NILE_SPI_CFG_MASK
     or ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
@@ -196,23 +237,6 @@ nile_disk_read_inner_lodsw_loop:
     mov al, NILE_EMU_LODSW_TRICK
     out IO_NILE_EMU_CNT, al
 
-    m_nile_spi_wait_ready_ax_no_timeout
-
-    // queue read 2 bytes
-    and ax, NILE_SPI_CFG_MASK
-    xor ax, ((2-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
-    out IO_NILE_SPI_CNT, ax
-
-    // wait for completion and flip buffer
-    m_nile_spi_wait_ready_ax_no_timeout
-
-    xor ax, NILE_SPI_BUFFER_IDX
-    out IO_NILE_SPI_CNT, ax
-
-    // read 512 bytes
-    dec bx
-    jz 8f
-    __waitread1
     push offset nile_disk_read_inner_lodsw_loop
 __nile_lodsw512:
 .rept 256
@@ -221,6 +245,9 @@ __nile_lodsw512:
     ret
 
 8:
+    mov al, NILE_EMU_LODSW_TRICK
+    out IO_NILE_EMU_CNT, al
+
     call __nile_lodsw512
     mov al, 1
 9:
