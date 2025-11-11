@@ -23,11 +23,12 @@
 #include <string.h>
 #include <ws.h>
 #include <ws/display.h>
-#include <ws/util.h>
+#include <wsx/bcd.h>
 #include "nile.h"
 #include "ff.h"
 #include "nile/hardware.h"
 #include "nile/ipc.h"
+#include "nile/mcu/rtc.h"
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
@@ -602,4 +603,38 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void *buff) {
 #endif
 
 	return RES_PARERR;
+}
+
+uint32_t nilefs_convert_rtc_datetime_to_fat(ws_cart_rtc_datetime_t *datetime) {
+	uint8_t year = wsx_bcd8_to_int(datetime->date.year);
+	uint8_t month = wsx_bcd8_to_int(datetime->date.month);
+	uint8_t day = wsx_bcd8_to_int(datetime->date.day);
+	uint8_t hour = wsx_bcd8_to_int(datetime->time.hour & 0x7F);
+	uint8_t minute = wsx_bcd8_to_int(datetime->time.minute);
+	uint8_t second = wsx_bcd8_to_int(datetime->time.second);
+	if ((datetime->time.hour & 0x80) && hour < 12) hour += 12;
+	uint32_t stamp = 0;
+	if (year <= 99) stamp |= ((uint32_t)(year + 20) << 25);
+	if (month <= 12) stamp |= ((uint32_t)month << 21);
+	if (day <= 31) stamp |= ((uint32_t)day << 16);
+	if (hour <= 23) stamp |= (month << 11);
+	if (minute <= 59) stamp |= (month << 5);
+	if (second <= 59) stamp |= (second >> 1);
+	return stamp;
+}
+
+DWORD get_fattime (void) {
+#ifndef LIBNILE_IPL1
+	ws_cart_rtc_datetime_t datetime;
+
+	uint16_t old_ctrl = inportw(IO_NILE_SPI_CNT);
+	nile_spi_set_control(NILE_SPI_CLOCK_CART | NILE_SPI_DEV_MCU);
+	int16_t result = nile_mcu_native_rtc_transaction_sync(WS_CART_RTC_CTRL_CMD_READ_DATETIME, NULL, 0, &datetime, 7);
+	nile_spi_set_control(old_ctrl & NILE_SPI_CFG_MASK);
+	if (result >= 7) {
+		return nilefs_convert_rtc_datetime_to_fat(&datetime);
+	}
+#endif
+
+	return ((DWORD)(FF_NORTC_YEAR - 1980) << 25 | (DWORD)FF_NORTC_MON << 21 | (DWORD)FF_NORTC_MDAY << 16);
 }

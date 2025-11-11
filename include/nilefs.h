@@ -36,6 +36,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <wonderful.h>
+#include <ws/cart/rtc.h>
 #include "nilefs/ff.h"
 #include "nilefs/diskio.h"
 
@@ -59,5 +60,13 @@ bool nilefs_read_card_cid(void __far* buff);
  * @return uint32_t Sector count, or 0 on failure.
  */
 uint32_t nilefs_read_card_sector_count(void);
+
+/**
+ * @brief Convert an RTC timestamp to a FAT timestamp.
+ * 
+ * @param datetime RTC timestamp.
+ * @return uint32_t FAT timestamp.
+ */
+uint32_t nilefs_convert_rtc_datetime_to_fat(ws_cart_rtc_datetime_t *datetime);
 
 #endif /* NILEFS_H_ */
