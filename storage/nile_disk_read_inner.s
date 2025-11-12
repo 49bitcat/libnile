@@ -173,7 +173,6 @@ nile_disk_read_inner_lodsw:
 
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in ax, IO_NILE_SPI_CNT
@@ -210,7 +209,6 @@ nile_disk_read_inner_lodsw_loop:
     
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     // make buffer B visible
@@ -305,7 +303,6 @@ nile_disk_read_inner_lodsw_gdma:
 
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in ax, IO_NILE_SPI_CNT
@@ -342,7 +339,6 @@ nile_disk_read_inner_lodsw_gdma_loop:
     
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     // make buffer B visible
