@@ -36,10 +36,14 @@ nile_soft_reset:
     // disable interrupts
     cli
 
+    // IPL0 assumes flash is awake -> wake up flash
+    mov al, NILE_FLASH_CMD_WAKE_ID
+    IA16_CALL __nile_flash_cmd
+
     // unlock nileswan registers
     mov al, NILE_POW_UNLOCK
     out IO_NILE_POW_CNT, al
-
+    
     // disable NMI
     xor ax, ax
     out 0xB7, al
@@ -67,13 +71,13 @@ nile_soft_reset:
     // emulate prefetch, so it wouldn't work on emulators.
 
     // push the following code:
-    // out 0xC0, ax
+    // out 0xC0, al
     // out IO_NILE_SEG_MASK, ax
     // nop
     // jmp far 0xFFFF:0000
     push 0xEA90
     push 0xE4E7
-    push 0xC0E7
+    push 0xC0E6
 
     // jump to code on stack
     mov bp, sp

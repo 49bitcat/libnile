@@ -59,6 +59,8 @@ static inline void nile_io_unlock(void) {
 
 /**
  * @brief Jump back to cartridge IPL0 (soft reset).
+ *
+ * Make sure to run nilefs_eject() first if you were using the TF card.
  */
 void nile_soft_reset(void);
 
