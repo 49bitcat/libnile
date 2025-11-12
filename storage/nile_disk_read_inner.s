@@ -180,24 +180,22 @@ nile_disk_read_inner_lodsw:
     xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
+    and ax, NILE_SPI_CFG_MASK
+
     // resp[0] == 0xFE?
     cmp byte ptr [0x0000], 0xFE
-    mov al, 0
     jne 9f
 
     // queue read 512 bytes to buffer A
-    and ax, NILE_SPI_CFG_MASK
     or ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
 nile_disk_read_inner_lodsw_loop:
-    mov al, 0x00
-    out IO_NILE_EMU_CNT, al
-
     m_nile_spi_wait_ready_ax_no_timeout
 
     // queue read 2 bytes to buffer B, buffer A is visible
     and ax, NILE_SPI_CFG_MASK
+    out IO_NILE_EMU_CNT, al // set EMU_CNT to 0x00
     xor ax, ((2-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
@@ -220,18 +218,15 @@ nile_disk_read_inner_lodsw_loop:
     xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
+    and ax, NILE_SPI_CFG_MASK
+    
     // resp[0] == 0xFE?
     cmp byte ptr [0x0000], 0xFE
-    mov al, 0
     jne 9f
 
     // make buffer A visible again
-    xor ax, NILE_SPI_BUFFER_IDX
-    out IO_NILE_SPI_CNT, ax
-
     // queue read 512 bytes to buffer A
-    and ax, NILE_SPI_CFG_MASK
-    or ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
+    xor ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ | NILE_SPI_BUFFER_IDX)
     out IO_NILE_SPI_CNT, ax
 
     mov al, NILE_EMU_LODSW_TRICK
@@ -283,11 +278,12 @@ __nile_lodsw512:
     .global nile_disk_read_inner_lodsw_gdma
 nile_disk_read_inner_lodsw_gdma:
     push ds
-    push si
 
     mov bx, dx
-    mov si, ax
-    // SI = destination pointer
+    out WS_GDMA_SOURCE_L_PORT, ax
+    mov al, 0x3
+    out WS_GDMA_SOURCE_H_PORT, al
+    // GDMA SRC = destination pointer
     // BX = sectors to read
 
     in al, IO_NILE_EMU_CNT
@@ -327,13 +323,11 @@ nile_disk_read_inner_lodsw_gdma:
     out IO_NILE_SPI_CNT, ax
 
 nile_disk_read_inner_lodsw_gdma_loop:
-    mov al, 0x00
-    out IO_NILE_EMU_CNT, al
-
     m_nile_spi_wait_ready_ax_no_timeout
 
     // queue read 2 bytes to buffer B, buffer A is visible
     and ax, NILE_SPI_CFG_MASK
+    out IO_NILE_EMU_CNT, al // set EMU_CNT to 0x00
     xor ax, ((2-1) | NILE_SPI_BUFFER_IDX | NILE_SPI_START | NILE_SPI_MODE_READ)
     out IO_NILE_SPI_CNT, ax
 
@@ -356,27 +350,20 @@ nile_disk_read_inner_lodsw_gdma_loop:
     xor ax, NILE_SPI_BUFFER_IDX
     out IO_NILE_SPI_CNT, ax
 
+    and ax, NILE_SPI_CFG_MASK
+    
     // resp[0] == 0xFE?
     cmp byte ptr [0x0000], 0xFE
-    mov al, 0
     jne 9f
 
     // make buffer A visible again
-    xor ax, NILE_SPI_BUFFER_IDX
-    out IO_NILE_SPI_CNT, ax
-
     // queue read 512 bytes to buffer A
-    and ax, NILE_SPI_CFG_MASK
-    or ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ)
+    xor ax, ((512-1) | NILE_SPI_START | NILE_SPI_MODE_READ | NILE_SPI_BUFFER_IDX)
     out IO_NILE_SPI_CNT, ax
 
     mov al, NILE_EMU_LODSW_TRICK
     out IO_NILE_EMU_CNT, al
 
-    mov al, 0x3
-    out WS_GDMA_SOURCE_H_PORT, al
-    mov ax, si
-    out WS_GDMA_SOURCE_L_PORT, ax
     mov ax, 0x200
     out WS_GDMA_LENGTH_PORT, ax
     mov ax, offset nilefs_gdma_scratch_buffer
@@ -384,18 +371,12 @@ nile_disk_read_inner_lodsw_gdma_loop:
     mov al, WS_GDMA_CTRL_INC | WS_GDMA_CTRL_START
     out WS_GDMA_CTRL_PORT, al
 
-    add si, 0x200
-
     jmp nile_disk_read_inner_lodsw_gdma_loop
 
 8:
     mov al, NILE_EMU_LODSW_TRICK
     out IO_NILE_EMU_CNT, al
 
-    mov al, 0x3
-    out WS_GDMA_SOURCE_H_PORT, al
-    mov ax, si
-    out WS_GDMA_SOURCE_L_PORT, ax
     mov ax, 0x200
     out WS_GDMA_LENGTH_PORT, ax
     mov ax, offset nilefs_gdma_scratch_buffer
@@ -407,16 +388,15 @@ nile_disk_read_inner_lodsw_gdma_loop:
 9:
 
 #ifndef LIBNILE_CLOBBER_ROM1
-    mov si, ax
+    mov bx, ax
     pop ax
     out WS_CART_EXTBANK_ROM1_PORT, ax
-    mov ax, si
+    mov ax, bx
 #endif
 
     pop ax
     out IO_NILE_EMU_CNT, al
 
-    pop si
     pop ds
     IA16_RET
 #endif
