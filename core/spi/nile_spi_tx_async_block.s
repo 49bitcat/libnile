@@ -68,7 +68,6 @@ nile_spi_tx_async_block:
 
     // CX = size - 1
     pop cx
-    test al, al
     jz 9f
 
     // uint16_t cnt = inportw(IO_NILE_SPI_CNT);

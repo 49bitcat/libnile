@@ -41,7 +41,6 @@ nile_spi_rx_sync_flip:
     jz 9f
     
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in al, (IO_NILE_SPI_CNT+1)

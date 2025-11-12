@@ -71,7 +71,6 @@ nile_disk_read_inner_loop:
 
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in ax, IO_NILE_SPI_CNT

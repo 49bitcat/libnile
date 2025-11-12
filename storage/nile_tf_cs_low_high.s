@@ -34,7 +34,6 @@
     .global nile_tf_cs_high
 nile_tf_cs_high:
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in ax, IO_NILE_SPI_CNT
@@ -53,7 +52,6 @@ nile_tf_cs_high:
     .global nile_tf_cs_low
 nile_tf_cs_low:
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     in ax, IO_NILE_SPI_CNT

@@ -42,7 +42,6 @@ nile_spi_xch:
     mov bx, ax
 
     call __nile_spi_wait_ready_near
-    test al, al
     mov ah, 0xFF
     jz 9f
 
@@ -71,7 +70,6 @@ nile_spi_xch:
 #endif
 
     call __nile_spi_wait_ready_near
-    test al, al
     mov ah, 0xFF
     jz 9f
 

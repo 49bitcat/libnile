@@ -30,7 +30,9 @@
     .intel_syntax noprefix
 
     // Wait for SPI to become ready, minding the timeout.
-    // Corrupts DX, CX, AX.
+    // Corrupts DX, CX.
+    // Returns AX = 0 on failure, 1 on success.
+    // Sets or clears the zero flag depending on result.
 
     .section .fartext.s.libnile, "ax"
     .align 2

@@ -59,7 +59,6 @@ __nile_mcu_native_send_cmd_async:
     push dx
     call __nile_spi_wait_ready_near
     pop dx
-    test al, al
     jz 9f
 
     // keep clock; flip buffer; set device to MCU; set length to 2 - 1
@@ -91,7 +90,6 @@ __nile_mcu_native_send_cmd_async:
     push dx
     call __nile_spi_wait_ready_near
     pop dx
-    test al, al
     jz 9f
 
     // keep clock; flip buffer; set device to MCU; set length to DX - 1

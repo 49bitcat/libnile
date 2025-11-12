@@ -43,7 +43,6 @@ nile_flash_wait_ready:
     m_open_sram_ram_bank NILE_SEG_RAM_SPI_TX
 
     call __nile_spi_wait_ready_near
-    test al, al
     jz 8f
 
     // Write one byte, store NILE_SPI_CNT value in BX
@@ -56,7 +55,6 @@ nile_flash_wait_ready:
     out IO_NILE_SPI_CNT, ax
     
     call __nile_spi_wait_ready_near
-    test al, al
     jz 8f
 
     m_pop_sram_bank_state
@@ -79,7 +77,6 @@ nile_flash_wait_ready:
     out IO_NILE_SPI_CNT, ax
 
     call __nile_spi_wait_ready_near
-    test al, al
     jz 8f
 
     mov ax, bx

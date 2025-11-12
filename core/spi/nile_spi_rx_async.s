@@ -49,7 +49,6 @@ __nile_spi_rx_async_ax:
     // if (!nile_spi_wait_ready()) return false;
     call __nile_spi_wait_ready_near
     pop dx
-    test al, al
     jz 9f
 
     // uint16_t cnt = inportw(IO_NILE_SPI_CNT);

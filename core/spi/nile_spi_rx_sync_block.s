@@ -56,7 +56,6 @@ nile_spi_rx_sync_block:
 
     // if (!nile_spi_wait_ready()) return false;
     call __nile_spi_wait_ready_near
-    test al, al
     jz 9f
 
     mov cx, bx
