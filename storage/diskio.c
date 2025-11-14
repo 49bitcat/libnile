@@ -149,7 +149,9 @@ DSTATUS disk_status(BYTE pdrv) {
 	return card_state == 0 ? STA_NOINIT : 0;
 }
 
-#define MAX_RETRIES 1000
+#define MAX_RESET_TIME_MS 1000
+#define MS_PER_RETRY 1
+#define MAX_RETRIES (MAX_RESET_TIME_MS / MS_PER_RETRY)
 
 void nilefs_ipc_sync(void) {
 	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
@@ -194,7 +196,9 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		powcnt |= NILE_POW_TF;
 		outportb(IO_NILE_POW_CNT, powcnt);
 	
-		ws_delay_ms(250);
+		// ChaN recommends 10 ms, but this might include chip power on time;
+		// do 20 ms just to be safe.
+		ws_delay_ms(20);
 	}
 
 	nile_spi_rx_async(10, NILE_SPI_MODE_READ);
@@ -212,7 +216,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		if ((buffer[3] & 0xF) == 0x1 && buffer[4] == 0xAA) {
 			// Attempt high-capacity card init
 			retries = MAX_RETRIES;
-			nile_spi_set_timeout(10);
+			nile_spi_set_timeout(MS_PER_RETRY);
 			while (--retries) {
 				uint8_t init_response = nile_tf_command(TFC_APP_SEND_OP_COND, 1UL << 30, 0x95, buffer, 1+1);
 				if (init_response & ~TFC_R1_IDLE) {
@@ -225,7 +229,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 					break;
 				}
 				// Card still idle, try again
-				ws_delay_ms(1);
+				ws_delay_ms(MS_PER_RETRY);
 			}
 
 			// Card init successful?
@@ -247,7 +251,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 
 	// Attempt card init
 	retries = MAX_RETRIES;
-	nile_spi_set_timeout(10);
+	nile_spi_set_timeout(MS_PER_RETRY);
 	uint8_t init_command = TFC_APP_SEND_OP_COND;
 	while (--retries) {
 		uint8_t init_response = nile_tf_command(init_command, 0, 0x95, buffer, 1+1);
@@ -270,7 +274,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 			goto card_init_complete;
 		}
 		// Card still idle, try again
-		ws_delay_ms(1);
+		ws_delay_ms(MS_PER_RETRY);
 	}
 
 	set_detail_code(3);
@@ -359,7 +363,7 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 
 #ifdef USE_MULTI_TRANSFER_READS
 	bool multi_transfer = count > 1;
-	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
+	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 1)) {
 		set_detail_code(0x10);
 		goto disk_read_end;
 	}
@@ -421,7 +425,7 @@ disk_read_stop:
 	}
 #else
 	while (count) {
-		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
+		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 1)) {
 			set_detail_code(0x10);
 			goto disk_read_end;
 		}
