@@ -553,7 +553,7 @@ uint32_t nilefs_read_card_sector_count(void) {
 			return ((uint32_t) size * size_mul * block_size) >> 9;
 		}
 		case 1: {
-			return ((uint32_t) ((csd[9] | (csd[8] << 8) | (((uint32_t) csd[7]) << 16)) + 1L)) << 10;
+			return ((((uint32_t) csd[9]) | (((uint32_t) csd[8]) << 8) | (((uint32_t) csd[7]) << 16)) + 1L) << 10;
 		}
 		}
 	}
