@@ -73,9 +73,15 @@ uint8_t nile_tf_wait_ready(uint8_t resp) {
 }
 #endif
 
-bool nile_tf_cs_high(void);
+// returns 0 on success, non-0 on failure
+uint8_t nile_tf_cs_toggle(void);
+
+static inline void nile_tf_cs_high_unsafe(void) {
+	outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK) | NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ);
+}
+
 #if 0
-bool nile_tf_cs_high(void) {
+uint8_t nile_tf_cs_high(void) {
 	if (!nile_spi_wait_ready())
 		return false;
 	uint16_t spi_cnt = inportw(IO_NILE_SPI_CNT);
@@ -86,11 +92,8 @@ bool nile_tf_cs_high(void) {
 		return false;
 	return true;
 }
-#endif
 
-bool nile_tf_cs_low(void);
-#if 0
-bool nile_tf_cs_low(void) {
+uint8_t nile_tf_cs_low(void) {
 	if (!nile_spi_wait_ready())
 		return false;
 	uint16_t spi_cnt = inportw(IO_NILE_SPI_CNT);
@@ -125,9 +128,7 @@ static uint8_t nile_tf_command(uint8_t cmd, uint32_t arg, uint8_t crc, uint8_t _
 
 	recv_buffer[0] = 0xFF;
 
-	if (!nile_tf_cs_high())
-		return 0xFF;
-	if (!nile_tf_cs_low())
+	if (nile_tf_cs_toggle())
 		return 0xFF;
 
 	cmd_buffer[0] = cmd & 0x7F;
@@ -187,8 +188,9 @@ DSTATUS disk_initialize(BYTE pdrv) {
 
 	set_detail_code(0);
 	uint16_t uses_fast_clock = inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_CART;
-	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART);
-	nile_tf_cs_high();
+
+	// Pull CS high
+	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART | NILE_SPI_MODE_READ);
 
 	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
 	if (!(powcnt & NILE_POW_TF)) {
@@ -441,7 +443,7 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
@@ -550,7 +552,7 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
@@ -559,21 +561,21 @@ disk_read_end:
 bool nilefs_read_card_csd(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CSD, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
 bool nilefs_read_card_cid(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CID, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
 bool nilefs_read_card_ssr(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_SSR, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 64);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 

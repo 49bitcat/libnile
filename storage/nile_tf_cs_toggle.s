@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,8 +31,8 @@
 
     .section .fartext.s.libnile, "ax"
     .align 2
-    .global nile_tf_cs_high
-nile_tf_cs_high:
+    .global nile_tf_cs_toggle
+nile_tf_cs_toggle:
     call __nile_spi_wait_ready_near
     jz 9f
 
@@ -41,31 +41,14 @@ nile_tf_cs_high:
     or ax, (NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ) // pull CS high
     out IO_NILE_SPI_CNT, ax
 
-    m_nile_spi_wait_ready_al_no_timeout
+    m_nile_spi_wait_ready_ax_no_timeout
 
-8:
-    mov al, 1
-9:
-    IA16_RET
-
-    .align 2
-    .global nile_tf_cs_low
-nile_tf_cs_low:
-    call __nile_spi_wait_ready_near
-    jz 9f
-
-    in ax, IO_NILE_SPI_CNT
-    and ax, (NILE_SPI_CFG_MASK & ~NILE_SPI_DEV_MASK)
     or ax, (NILE_SPI_DEV_TF | NILE_SPI_START | NILE_SPI_MODE_READ) // pull CS low
     out IO_NILE_SPI_CNT, ax
 
-    // Already done by nile_tf_wait_ready
-    // m_nile_spi_wait_ready_al_no_timeout
-
     xor ax, ax
-    IA16_CALL_LOCAL nile_tf_wait_ready
-    test al, al
-    mov al, 0
-    jz 8b
+    jmp nile_tf_wait_ready
+
 9:
+    mov ax, 1
     IA16_RET
