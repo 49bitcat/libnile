@@ -154,13 +154,6 @@ DSTATUS disk_status(BYTE pdrv) {
 #define MS_PER_RETRY 1
 #define MAX_RETRIES (MAX_RESET_TIME_MS / MS_PER_RETRY)
 
-void nilefs_ipc_sync(void) {
-	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
-	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
-	card_state = MEM_NILE_IPC->tf_card_status;
-	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
-}
-
 void nilefs_eject(void) {
 	// Set card status to disabled
 	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
@@ -177,10 +170,21 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	uint16_t retries;
 	uint8_t buffer[8];
 
-	nilefs_ipc_sync();
-	if (card_state != 0) return 0;
+	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
+	
+	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
+	if (powcnt & NILE_POW_TF) {
+		// TF card powered, read card state from IPC
+		card_state = MEM_NILE_IPC->tf_card_status;
+	} else {
+		// TF card unpowered, clear card
+		MEM_NILE_IPC->tf_card_status = 0;
+		card_state = 0;
+	}
+	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 
-	card_state = 0;
+	if (card_state != 0) return 0;
 	nile_spi_set_timeout(1000);
 
 	if (!nile_spi_wait_ready())
@@ -192,7 +196,6 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	// Pull CS high
 	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART | NILE_SPI_MODE_READ);
 
-	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
 	if (!(powcnt & NILE_POW_TF)) {
 		// Power card on
 		powcnt |= NILE_POW_TF;
