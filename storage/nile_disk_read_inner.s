@@ -146,6 +146,10 @@ __nile_movsw80:
 nile_disk_read_inner_lodsw:
     cld
 
+    // TODO: Restore interrupts between sector reads
+    pushf
+    cli
+
     push ds
     push si
 
@@ -269,12 +273,18 @@ __nile_lodsw512:
 
     pop si
     pop ds
+
+    popf
     IA16_RET
 #endif
 
 #ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
     .global nile_disk_read_inner_lodsw_gdma
 nile_disk_read_inner_lodsw_gdma:
+    // TODO: Restore interrupts between sector reads
+    pushf
+    cli
+
     push ds
 
     mov bx, dx
@@ -394,5 +404,6 @@ nile_disk_read_inner_lodsw_gdma_loop:
     out IO_NILE_EMU_CNT, al
 
     pop ds
+    popf
     IA16_RET
 #endif
