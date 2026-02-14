@@ -83,8 +83,9 @@
 #define IO_NILE_WARMBOOT_CNT   0xE6
 #define IO_NILE_BOARD_REVISION 0xE6
 
-#define IO_NILE_IRQ_ENABLE 0xE8
-#define IO_NILE_IRQ_STATUS 0xE9
-#define NILE_IRQ_MCU       0x01
+#define IO_NILE_IRQ_ENABLE   0xE8
+#define IO_NILE_IRQ_STATUS   0xE9
+#define NILE_IRQ_MCU         0x01
+#define NILE_IRQ_BUTTON_HELD 0x02
 
 #endif /* NILE_HARDWARE_H_ */
