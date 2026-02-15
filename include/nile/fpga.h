@@ -39,22 +39,58 @@
 void nile_bank_clear_mask(void);
 
 /**
- * @brief Adjust banking registers and unlock NILE_SEG_MASK RAM/ROM0/ROM1.
+ * @brief Adjust banking registers and unlock RAM/ROM0/ROM1 banks.
  *
  * This variant is safe for <1MB cartridge images.
  */
 void nile_bank_unlock(void);
 
 /**
- * @brief Re-lock NILE_SEG_MASK RAM/ROM0/ROM1.
+ * @brief Re-lock RAM/ROM0/ROM1 banks.
  */
 void nile_bank_lock(void);
 
 /**
- * @brief Unlock nileswan-exclusive registers.
+ * @brief Unlock I/O ports used to control the cartridge FPGA.
  */
 static inline void nile_io_unlock(void) {
     outportb(IO_NILE_POW_CNT, NILE_POW_UNLOCK);
+}
+
+/**
+ * @brief Enable the specified FPGA interrupts.
+ */
+static inline void nile_irq_enable(uint8_t mask) {
+    outportb(NILE_IRQ_ENABLE_PORT, inportb(NILE_IRQ_ENABLE_PORT) | mask);
+}
+
+/**
+ * @brief Disable the specified FPGA interrupts.
+ */
+static inline void nile_irq_disable(uint8_t mask) {
+    outportb(NILE_IRQ_ENABLE_PORT, inportb(NILE_IRQ_ENABLE_PORT) & ~mask);
+}
+
+/**
+ * @brief Disable all FPGA interrupts.
+ */
+static inline void nile_irq_disable_all(void) {
+    outportb(NILE_IRQ_ENABLE_PORT, 0);
+}
+
+/**
+ * @brief Acknowledge the specified FPGA interrupts.
+ */
+static inline void nile_irq_ack(uint8_t mask) {
+    outportb(NILE_IRQ_STATUS_PORT, mask);
+}
+
+/**
+ * @brief Set the specified FPGA interrupts as enabled;
+ * disable all other interrupts.
+ */
+static inline void nile_irq_set_enabled(uint8_t mask) {
+    outportb(NILE_IRQ_ENABLE_PORT, mask);
 }
 
 /**
