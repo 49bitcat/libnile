@@ -20,8 +20,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef NILE_CORE_H_
-#define NILE_CORE_H_
+#ifndef NILE_FPGA_H_
+#define NILE_FPGA_H_
 
 #include <wonderful.h>
 #include "hardware.h"
@@ -66,4 +66,4 @@ void nile_soft_reset(void);
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* NILE_CORE_H_ */
+#endif /* NILE_FPGA_H_ */

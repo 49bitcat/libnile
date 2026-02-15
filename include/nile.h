@@ -25,7 +25,7 @@
 
 #include <wonderful.h>
 #include "nile/hardware.h"
-#include "nile/core.h"
+#include "nile/fpga.h"
 #include "nile/spi.h"
 #include "nile/flash.h"
 #include "nile/mcu.h"

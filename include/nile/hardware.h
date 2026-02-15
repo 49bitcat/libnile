@@ -43,6 +43,7 @@
 #define NILE_SPI_BUSY               0x8000
 #define NILE_SPI_CFG_MASK           (NILE_SPI_BUFFER_IDX | NILE_SPI_DEV_MASK | NILE_SPI_CLOCK_MASK)
 #define IO_NILE_SPI_CNT    0xE0
+#define NILE_SPI_CNT_PORT  0xE0
 
 #define NILE_POW_CLOCK     0x01
 #define NILE_POW_TF        0x02
@@ -54,6 +55,7 @@
 #define NILE_POW_MCU_RESET 0x80
 #define NILE_POW_UNLOCK    0xDD
 #define IO_NILE_POW_CNT    0xE2
+#define NILE_POW_CNT_PORT  0xE2
 
 #define NILE_EMU_EEPROM_MASK   0x03
 #define NILE_EMU_EEPROM_128B   0x00
@@ -64,6 +66,7 @@
 #define NILE_EMU_ROM_BUS_8BIT  0x08
 #define NILE_EMU_SRAM_32KB     0x10
 #define IO_NILE_EMU_CNT      0xE3
+#define NILE_EMU_CNT_PORT    0xE3
 
 #define NILE_SEG_MASK_RAM_MASK  0xF
 #define NILE_SEG_MASK_RAM_SHIFT 12
@@ -74,18 +77,23 @@
 #define NILE_SEG_MASK_RAM_LOCK  (1 << 11)
 #define NILE_SEG_MASK_LOCK      (7 << 9)
 #define IO_NILE_SEG_MASK   0xE4
+#define NILE_SEG_MASK_PORT 0xE4
 
 #define NILE_SEG_RAM_IPC    14
 #define NILE_SEG_RAM_SPI_TX 15
 #define NILE_SEG_ROM_SPI_RX 510
 #define NILE_SEG_ROM_BOOT   511
 
-#define IO_NILE_WARMBOOT_CNT   0xE6
-#define IO_NILE_BOARD_REVISION 0xE6
+#define IO_NILE_WARMBOOT_CNT     0xE6
+#define NILE_WARMBOOT_CNT_PORT   0xE6
+#define IO_NILE_BOARD_REVISION   0xE6
+#define NILE_BOARD_REVISION_PORT 0xE6
 
-#define IO_NILE_IRQ_ENABLE   0xE8
-#define IO_NILE_IRQ_STATUS   0xE9
 #define NILE_IRQ_MCU         0x01
 #define NILE_IRQ_BUTTON_HELD 0x02
+#define IO_NILE_IRQ_ENABLE   0xE8
+#define NILE_IRQ_ENABLE_PORT 0xE8
+#define IO_NILE_IRQ_STATUS   0xE9
+#define NILE_IRQ_STATUS_PORT 0xE9
 
 #endif /* NILE_HARDWARE_H_ */
