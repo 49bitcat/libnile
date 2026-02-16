@@ -25,6 +25,7 @@
 
 #include <wonderful.h>
 #include "hardware.h"
+#include "mcu/protocol.h"
 
 #define NILE_MCU_BOOT_ACK          0x79
 #define NILE_MCU_BOOT_NACK         0x1F
@@ -211,19 +212,11 @@ static inline int16_t nile_mcu_native_recv_cmd_response_int16(void) {
     return bytes;
 }
 
-typedef enum {
-    NILE_MCU_NATIVE_MODE_CMD = 0x00, ///< Native command mode.
-    NILE_MCU_NATIVE_MODE_EEPROM = 0x01, ///< EEPROM emulation mode.
-    NILE_MCU_NATIVE_MODE_RTC = 0x02, ///< RTC emulation mode.
-    NILE_MCU_NATIVE_MODE_CDC = 0x03, ///< CDC output-only mode.
-    NILE_MCU_NATIVE_MODE_STANDBY = 0xFF ///< MCU standby mode - will not respond to further SPI messages until reset.
-} nile_mcu_native_mode_t;
-
 /**
  * @brief Switch the mode in which the MCU is operating.
  */
 static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
-    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x01, mode), NULL, 0);
+    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_MODE, mode), NULL, 0);
 }
 
 /**
@@ -234,26 +227,42 @@ static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
 static inline int16_t nile_mcu_native_mcu_spi_set_speed_sync(uint8_t speed) {
     int16_t result;
     uint8_t op_result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x02, speed), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_FREQ, speed), NULL, 0)) < 0) return result;
     if ((result = nile_mcu_native_recv_cmd(&op_result, 1)) < 1) return result;
     return op_result;
 }
 
 static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint16_t buflen) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x03, 0), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_ID, 0), NULL, 0)) < 0) return result;
     return nile_mcu_native_recv_cmd(buffer, buflen);
 }
 
-typedef struct {
-    uint16_t major;
-    uint16_t minor;
-} nile_mcu_native_version_t;
-
 static inline int16_t nile_mcu_native_mcu_get_version_sync(void __far* buffer, uint16_t buflen) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x0F, 0), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_VERSION, 0), NULL, 0)) < 0) return result;
     return nile_mcu_native_recv_cmd(buffer, buflen);
+}
+
+static inline int16_t nile_mcu_native_mcu_get_info_sync(void __far* buffer, uint16_t buflen) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_INFO, 0), NULL, 0)) < 0) return result;
+    return nile_mcu_native_recv_cmd(buffer, buflen);
+}
+
+static inline int16_t nile_mcu_native_mcu_reg_read_sync(uint16_t addr) {
+    int16_t result;
+    uint16_t value;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_REG_READ, addr), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(&value, 2)) < 0) return result;
+    return value;
+}
+
+static inline int16_t nile_mcu_native_mcu_reg_write_sync(uint16_t addr, uint16_t value) {
+    int16_t result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_REG_WRITE, addr), &value, 2)) < 0) return result;
+    if ((result = nile_mcu_native_recv_cmd(NULL, 0)) < 0) return result;
+    return 0;
 }
 
 #endif /* __ASSEMBLER__ */

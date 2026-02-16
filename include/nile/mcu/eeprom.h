@@ -43,33 +43,33 @@ typedef enum {
 static inline int16_t nile_mcu_native_eeprom_set_mode_sync(nile_mcu_eeprom_mode_t mode) {
     int16_t result;
     bool retval = false;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x10, mode), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_MODE, mode), NULL, 0)) < 0) return result;
     if ((result = nile_mcu_native_recv_cmd(&retval, 1)) <= 0) return result;
     return retval;
 }
 
 static inline int16_t nile_mcu_native_eeprom_erase_sync(void) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x11, 0), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_ERASE, 0), NULL, 0)) < 0) return result;
     return nile_mcu_native_recv_cmd(NULL, 0);
 }
 
 static inline int16_t nile_mcu_native_eeprom_read_sync(void __far* buffer, uint16_t offset, uint16_t buflen) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x12, buflen >> 1), &offset, 2)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_READ, buflen >> 1), &offset, 2)) < 0) return result;
     return nile_mcu_native_recv_cmd(buffer, buflen);
 }
 
 static inline int16_t nile_mcu_native_eeprom_write_sync(const void __wf_cram* buffer, uint16_t buflen) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x13, buflen), buffer, buflen)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, buflen), buffer, buflen)) < 0) return result;
     if ((result = nile_mcu_native_recv_cmd(NULL, 0)) < 0) return result;
     return 0;
 }
 
 static inline int16_t nile_mcu_native_eeprom_write_async_start(const void __wf_cram* buffer, uint16_t buflen) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x13, buflen), buffer, buflen)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, buflen), buffer, buflen)) < 0) return result;
     return nile_mcu_native_recv_cmd_start(0);
 }
 #define nile_mcu_native_eeprom_write_async_finish nile_mcu_native_recv_cmd_response_none
@@ -82,7 +82,7 @@ static inline int16_t nile_mcu_native_eeprom_write_async_start(const void __wf_c
 static inline int16_t nile_mcu_native_eeprom_get_mode_sync(void) {
     int16_t result;
     uint8_t mode;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(0x15, 0), NULL, 0)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_GET_MODE, 0), NULL, 0)) < 0) return result;
     if ((result = nile_mcu_native_recv_cmd(&mode, 1)) <= 0) return result;
     return mode;
 }
