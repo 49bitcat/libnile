@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, 2024 Adrian "asie" Siekierka
+ * Copyright (c) 2023, 2024, 2025 Adrian "asie" Siekierka
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <ws.h>
+#include <ws/cart/rtc.h>
 #include <ws/display.h>
 #include <wsx/bcd.h>
 #include "nile.h"
@@ -29,6 +30,7 @@
 #include "nile/hardware.h"
 #include "nile/ipc.h"
 #include "nile/mcu/rtc.h"
+#include "internal.h"
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
@@ -71,9 +73,15 @@ uint8_t nile_tf_wait_ready(uint8_t resp) {
 }
 #endif
 
-bool nile_tf_cs_high(void);
+// returns 0 on success, non-0 on failure
+uint8_t nile_tf_cs_toggle(void);
+
+static inline void nile_tf_cs_high_unsafe(void) {
+	outportw(IO_NILE_SPI_CNT, (inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_MASK) | NILE_SPI_DEV_NONE | NILE_SPI_START | NILE_SPI_MODE_READ);
+}
+
 #if 0
-bool nile_tf_cs_high(void) {
+uint8_t nile_tf_cs_high(void) {
 	if (!nile_spi_wait_ready())
 		return false;
 	uint16_t spi_cnt = inportw(IO_NILE_SPI_CNT);
@@ -84,11 +92,8 @@ bool nile_tf_cs_high(void) {
 		return false;
 	return true;
 }
-#endif
 
-bool nile_tf_cs_low(void);
-#if 0
-bool nile_tf_cs_low(void) {
+uint8_t nile_tf_cs_low(void) {
 	if (!nile_spi_wait_ready())
 		return false;
 	uint16_t spi_cnt = inportw(IO_NILE_SPI_CNT);
@@ -123,9 +128,7 @@ static uint8_t nile_tf_command(uint8_t cmd, uint32_t arg, uint8_t crc, uint8_t _
 
 	recv_buffer[0] = 0xFF;
 
-	if (!nile_tf_cs_high())
-		return 0xFF;
-	if (!nile_tf_cs_low())
+	if (nile_tf_cs_toggle())
 		return 0xFF;
 
 	cmd_buffer[0] = cmd & 0x7F;
@@ -147,14 +150,9 @@ DSTATUS disk_status(BYTE pdrv) {
 	return card_state == 0 ? STA_NOINIT : 0;
 }
 
-#define MAX_RETRIES 1000
-
-void nilefs_ipc_sync(void) {
-	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
-	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
-	card_state = MEM_NILE_IPC->tf_card_status;
-	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
-}
+#define MAX_RESET_TIME_MS 1000
+#define MS_PER_RETRY 1
+#define MAX_RETRIES (MAX_RESET_TIME_MS / MS_PER_RETRY)
 
 void nilefs_eject(void) {
 	// Set card status to disabled
@@ -172,10 +170,21 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	uint16_t retries;
 	uint8_t buffer[8];
 
-	nilefs_ipc_sync();
-	if (card_state != 0) return 0;
+	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
+	
+	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
+	if (powcnt & NILE_POW_TF) {
+		// TF card powered, read card state from IPC
+		card_state = MEM_NILE_IPC->tf_card_status;
+	} else {
+		// TF card unpowered, clear card
+		MEM_NILE_IPC->tf_card_status = 0;
+		card_state = 0;
+	}
+	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 
-	card_state = 0;
+	if (card_state != 0) return 0;
 	nile_spi_set_timeout(1000);
 
 	if (!nile_spi_wait_ready())
@@ -183,16 +192,18 @@ DSTATUS disk_initialize(BYTE pdrv) {
 
 	set_detail_code(0);
 	uint16_t uses_fast_clock = inportw(IO_NILE_SPI_CNT) & NILE_SPI_CLOCK_CART;
-	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART);
-	nile_tf_cs_high();
 
-	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
+	// Pull CS high
+	outportw(IO_NILE_SPI_CNT, NILE_SPI_DEV_NONE | NILE_SPI_CLOCK_CART | NILE_SPI_MODE_READ);
+
 	if (!(powcnt & NILE_POW_TF)) {
 		// Power card on
 		powcnt |= NILE_POW_TF;
 		outportb(IO_NILE_POW_CNT, powcnt);
 	
-		ws_delay_ms(250);
+		// ChaN recommends 10 ms, but this might include chip power on time;
+		// do 20 ms just to be safe.
+		ws_delay_ms(20);
 	}
 
 	nile_spi_rx_async(10, NILE_SPI_MODE_READ);
@@ -210,7 +221,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		if ((buffer[3] & 0xF) == 0x1 && buffer[4] == 0xAA) {
 			// Attempt high-capacity card init
 			retries = MAX_RETRIES;
-			nile_spi_set_timeout(10);
+			nile_spi_set_timeout(MS_PER_RETRY);
 			while (--retries) {
 				uint8_t init_response = nile_tf_command(TFC_APP_SEND_OP_COND, 1UL << 30, 0x95, buffer, 1+1);
 				if (init_response & ~TFC_R1_IDLE) {
@@ -223,7 +234,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 					break;
 				}
 				// Card still idle, try again
-				ws_delay_ms(1);
+				ws_delay_ms(MS_PER_RETRY);
 			}
 
 			// Card init successful?
@@ -245,7 +256,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 
 	// Attempt card init
 	retries = MAX_RETRIES;
-	nile_spi_set_timeout(10);
+	nile_spi_set_timeout(MS_PER_RETRY);
 	uint8_t init_command = TFC_APP_SEND_OP_COND;
 	while (--retries) {
 		uint8_t init_response = nile_tf_command(init_command, 0, 0x95, buffer, 1+1);
@@ -268,7 +279,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 			goto card_init_complete;
 		}
 		// Card still idle, try again
-		ws_delay_ms(1);
+		ws_delay_ms(MS_PER_RETRY);
 	}
 
 	set_detail_code(3);
@@ -305,6 +316,15 @@ card_init_complete_hc:
 }
 
 bool nile_disk_read_inner(BYTE __far* buff, uint16_t count);
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+bool nile_disk_read_inner_lodsw(BYTE* buff, uint16_t count);
+#endif
+#ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
+bool nile_disk_read_inner_lodsw_gdma(BYTE* buff, uint16_t count);
+
+__attribute__((weak, section(".iramC.nilefs_gdma_scratch_buffer"), aligned(2)))
+uint8_t nilefs_gdma_scratch_buffer[0x200];
+#endif
 
 __attribute__((noinline))
 static bool nile_tf_read_data(void __far* buff, uint16_t len) {
@@ -329,6 +349,16 @@ static bool nile_tf_read_data(void __far* buff, uint16_t len) {
 	return true;
 }
 
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+static bool lodsw_supported(void) {
+	volatile uint8_t old_emu_cnt = inportb(IO_NILE_EMU_CNT);
+	outportb(IO_NILE_EMU_CNT, NILE_EMU_LODSW_TRICK);
+	volatile bool result = (inportb(IO_NILE_EMU_CNT) & NILE_EMU_LODSW_TRICK) != 0;
+	outportb(IO_NILE_EMU_CNT, old_emu_cnt);
+	return result;
+}
+#endif
+
 DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
@@ -338,12 +368,24 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 
 #ifdef USE_MULTI_TRANSFER_READS
 	bool multi_transfer = count > 1;
-	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
+	if (nile_tf_command(multi_transfer ? TFC_READ_MULTIPLE_BLOCK : TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 1)) {
 		set_detail_code(0x10);
 		goto disk_read_end;
 	}
 
 #if 1
+#ifdef LIBNILEFS_ENABLE_LODSW_READ
+	if (!(FP_OFF(buff) & 0x1FF) && FP_SEG(buff) == 0x1000 && inportb(WS_CART_BANK_FLASH_PORT) && !(inportb(WS_CART_EXTBANK_RAM_PORT + 1) & 1) && lodsw_supported()) {
+#ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
+		if (ws_system_is_color_active()) {
+			if (!nile_disk_read_inner_lodsw_gdma((BYTE*) FP_OFF(buff), count)) 
+				goto disk_read_stop;
+		} else 
+#endif
+		if (!nile_disk_read_inner_lodsw((BYTE*) FP_OFF(buff), count)) 
+			goto disk_read_stop;
+	} else
+#endif
 	if (!nile_disk_read_inner(buff, count)) 
 		goto disk_read_stop;
 #else
@@ -388,7 +430,7 @@ disk_read_stop:
 	}
 #else
 	while (count) {
-		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 0+1)) {
+		if (nile_tf_command(TFC_READ_SINGLE_BLOCK, sector, 0x95, resp, 1)) {
 			set_detail_code(0x10);
 			goto disk_read_end;
 		}
@@ -404,7 +446,7 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
@@ -513,7 +555,7 @@ disk_read_stop:
 
 	result = RES_OK;
 disk_read_end:
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
@@ -522,21 +564,21 @@ disk_read_end:
 bool nilefs_read_card_csd(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CSD, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
 bool nilefs_read_card_cid(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_CID, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 16);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
 bool nilefs_read_card_ssr(void __far* buff) {
 	uint8_t resp[1];
 	bool result = !nile_tf_command(TFC_SEND_SSR, 0, 0x95, resp, 1) && nile_tf_read_data(buff, 64);
-	nile_tf_cs_high();
+	nile_tf_cs_high_unsafe();
 	return result;
 }
 
