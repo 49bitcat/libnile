@@ -24,7 +24,7 @@
 #include <ws.h>
 #include "nile.h"
 #include "../core/macros.inc"
-#include "internal.h"
+#include "../core/config_internal.h"
 
 	.arch	i186
 	.code16

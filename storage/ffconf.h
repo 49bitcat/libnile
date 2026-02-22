@@ -9,7 +9,7 @@
 / Function Configurations
 /---------------------------------------------------------------------------*/
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_FS_READONLY	1
 #else
 #define FF_FS_READONLY	0
@@ -19,7 +19,7 @@
 /  f_unlink(), f_mkdir(), f_chmod(), f_rename(), f_truncate(), f_getfree()
 /  and optional writing functions as well. */
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_FS_MINIMIZE	1
 #else
 #define FF_FS_MINIMIZE	0
@@ -39,7 +39,7 @@
 
 // FIXME: Re-enable when wf-tools fixes its linker GC
 #ifndef FF_USE_MKFS
-#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
+#if defined(LIBNILE_FLAVOR_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_MKFS	0
 #else
 #define FF_USE_MKFS	1
@@ -48,7 +48,7 @@
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
 
-#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
+#if defined(LIBNILE_FLAVOR_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_FASTSEEK	0
 #else
 #define FF_USE_FASTSEEK	1
@@ -73,7 +73,7 @@
 #define FF_USE_FORWARD	0
 /* This option switches f_forward() function. (0:Disable or 1:Enable) */
 
-#if defined(LIBNILE_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
+#if defined(LIBNILE_FLAVOR_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_STRFUNC	0
 #else
 #define FF_USE_STRFUNC	2
@@ -105,7 +105,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_CODE_PAGE	1
 #else
 #define FF_CODE_PAGE	437
@@ -138,7 +138,7 @@
 */
 
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_USE_LFN		0
 #else
 #ifdef __IA16_CALLCVT_NO_ASSUME_SS_DATA
@@ -166,7 +166,7 @@
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_LFN_UNICODE	0
 #else
 #define FF_LFN_UNICODE	2
@@ -182,7 +182,7 @@
 /  When LFN is not enabled, this option has no effect. */
 
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_LFN_BUF		16
 #else
 #define FF_LFN_BUF		224
@@ -194,7 +194,7 @@
 /  on character encoding. When LFN is not enabled, these options have no effect. */
 
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_FS_RPATH		0
 #else
 #define FF_FS_RPATH		2
@@ -293,7 +293,7 @@
 /  Note that enabling exFAT discards ANSI C (C89) compatibility. */
 
 
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_FS_NORTC		1
 #else
 #define FF_FS_NORTC		0
@@ -439,7 +439,7 @@
 /* Address spaces used for certain pointer arguments.
 */
 #define FF_WF_DATA_BUFFER_ADDRESS_SPACE __far
-#ifdef LIBNILE_IPL1
+#ifdef LIBNILE_FLAVOR_IPL1
 #define FF_WF_FILINFO_ADDRESS_SPACE
 #define FF_WF_CONST_ADDRESS_SPACE
 #else

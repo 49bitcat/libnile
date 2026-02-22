@@ -6,13 +6,16 @@ WONDERFUL_TOOLCHAIN ?= /opt/wonderful
 TARGET ?= wswan/medium
 DESTDIR ?= dist/$(TARGET)
 
-DEFINES := -DLIBWS_USE_EXTBANK
+DEFINES += -DLIBWS_USE_EXTBANK
 TARGET_PATH = $(TARGET)
 
 ifeq ($(TARGET),ipl1)
-DEFINES += -DLIBNILE_IPL1 -DLIBNILE_CLOBBER_ROM1 -DLIBNILE_EXPOSE_DISKIO_DETAIL_CODE
+CUSTOM_TARGET := true
+DEFINES += -DLIBNILE_FLAVOR_IPL1
 include $(WONDERFUL_TOOLCHAIN)/target/wswan/bootfriend/makedefs.mk
-else
+endif
+
+ifneq ($(CUSTOM_TARGET),true)
 include $(WONDERFUL_TOOLCHAIN)/target/$(TARGET)/makedefs.mk
 endif
 

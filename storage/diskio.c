@@ -30,7 +30,7 @@
 #include "nile/hardware.h"
 #include "nile/ipc.h"
 #include "nile/mcu/rtc.h"
-#include "internal.h"
+#include "../core/config_internal.h"
 #include "diskio.h"
 
 #define USE_MULTI_TRANSFER_READS
@@ -164,6 +164,23 @@ void nilefs_eject(void) {
 
 	// Disable TF card power
 	outportb(IO_NILE_POW_CNT, inportb(IO_NILE_POW_CNT) & ~NILE_POW_TF);
+}
+
+// Internal symbol, do not remove
+void nilefs_ipc_sync(void) {
+	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
+	
+	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
+	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
+	if (powcnt & NILE_POW_TF) {
+		// TF card powered, read card state from IPC
+		card_state = MEM_NILE_IPC->tf_card_status;
+	} else {
+		// TF card unpowered, clear card
+		MEM_NILE_IPC->tf_card_status = 0;
+		card_state = 0;
+	}
+	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
 }
 
 DSTATUS disk_initialize(BYTE pdrv) {
@@ -630,7 +647,7 @@ uint32_t nilefs_read_card_block_size(void) {
 }
 
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void *buff) {
-#ifndef LIBNILE_IPL1
+#ifndef LIBNILE_FLAVOR_IPL1
 	uint32_t v;
 
 	switch (cmd) {
@@ -669,7 +686,7 @@ uint32_t nilefs_convert_rtc_datetime_to_fat(ws_cart_rtc_datetime_t *datetime) {
 }
 
 DWORD get_fattime (void) {
-#ifndef LIBNILE_IPL1
+#ifndef LIBNILE_FLAVOR_IPL1
 	ws_cart_rtc_datetime_t datetime;
 
 	uint16_t old_ctrl = inportw(IO_NILE_SPI_CNT);
