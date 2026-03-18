@@ -6,12 +6,12 @@ WONDERFUL_TOOLCHAIN ?= /opt/wonderful
 TARGET ?= wswan/medium
 DESTDIR ?= dist/$(TARGET)
 
-DEFINES += -DLIBWS_USE_EXTBANK
+SYSDEFINES := -DLIBWS_USE_EXTBANK
 TARGET_PATH = $(TARGET)
 
 ifeq ($(TARGET),ipl1)
 CUSTOM_TARGET := true
-DEFINES += -DLIBNILE_FLAVOR_IPL1
+SYSDEFINES += -DLIBNILE_FLAVOR_IPL1
 include $(WONDERFUL_TOOLCHAIN)/target/wswan/bootfriend/makedefs.mk
 endif
 
@@ -65,10 +65,10 @@ WARNFLAGS	:= -Wall
 INCLUDEFLAGS	:= $(foreach path,$(INCLUDEDIRS),-I$(path)) \
 		   $(foreach path,$(LIBDIRS),-isystem $(path)/include)
 
-ASFLAGS		+= -x assembler-with-cpp $(DEFINES) $(WF_ARCH_CFLAGS) \
+ASFLAGS		+= -x assembler-with-cpp $(SYSDEFINES) $(DEFINES) $(WF_ARCH_CFLAGS) \
 		   $(INCLUDEFLAGS) -ffunction-sections -fdata-sections
 
-CFLAGS		+= -std=gnu11 $(WARNFLAGS) $(DEFINES) $(WF_ARCH_CFLAGS) \
+CFLAGS		+= -std=gnu11 $(WARNFLAGS) $(SYSDEFINES) $(DEFINES) $(WF_ARCH_CFLAGS) \
 		   $(INCLUDEFLAGS) -ffunction-sections -fdata-sections -Os
 
 # Intermediate build files
