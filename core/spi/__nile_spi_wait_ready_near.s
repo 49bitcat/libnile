@@ -25,16 +25,13 @@
 #include "nile.h"
 #include "macros.inc"
 
-    .arch i186
-    .code16
-    .intel_syntax noprefix
+#include "section.inc"
 
     // Wait for SPI to become ready, minding the timeout.
     // Corrupts DX, CX.
     // Returns AX = 0 on failure, 1 on success.
     // Sets or clears the zero flag depending on result.
 
-    .section .fartext.s.libnile, "ax"
     .align 2
     .global __nile_spi_wait_ready_near
 __nile_spi_wait_ready_near:

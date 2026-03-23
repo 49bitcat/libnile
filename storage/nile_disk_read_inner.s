@@ -26,11 +26,8 @@
 #include "../core/macros.inc"
 #include "../core/config_internal.h"
 
-	.arch	i186
-	.code16
-	.intel_syntax noprefix
+#include "../core/section.inc"
 
-    .section .fartext.s.libnile, "ax"
     .align 2
 
 .macro __waitread1

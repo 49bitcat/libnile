@@ -25,11 +25,7 @@
 #include "nile.h"
 #include "macros.inc"
 
-    .arch i186
-    .code16
-    .intel_syntax noprefix
-
-    .section .fartext.s.libnile, "ax"
+#include "section.inc"
     .align 2
     .global nile_flash_wait_ready
 nile_flash_wait_ready:

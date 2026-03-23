@@ -25,11 +25,8 @@
 #include "nile.h"
 #include "macros.inc"
 
-    .arch i186
-    .code16
-    .intel_syntax noprefix
+#include "section.inc"
 
-    .section .fartext.s.libnile, "ax"
     .align 2
     .global nile_spi_xch_block
     // Input:

@@ -25,12 +25,9 @@
 #include "nile.h"
 #include "macros.inc"
 
-    .arch i186
-    .code16
-    .intel_syntax noprefix
-
 #ifdef __IA16_CMODEL_IS_FAR_TEXT
-    .section .fartext.s.libnile, "ax"
+#include "section.inc"
+
     .align 2
     .global nile_spi_wait_ready
 nile_spi_wait_ready:

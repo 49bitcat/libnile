@@ -25,11 +25,8 @@
 #include "nile.h"
 #include "../core/macros.inc"
 
-	.arch	i186
-	.code16
-	.intel_syntax noprefix
+#include "../core/section.inc"
 
-    .section .fartext.s.libnile, "ax"
     .align 2
     .global nile_tf_cs_high
 nile_tf_cs_high:
