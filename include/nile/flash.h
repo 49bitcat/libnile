@@ -26,6 +26,7 @@
 #include <wonderful.h>
 #include "hardware.h"
 
+#define NILE_FLASH_ID_BY25Q16BS   0x684015
 #define NILE_FLASH_ID_W25Q16JV_IQ 0xEF4015
 #define NILE_FLASH_ID_W25Q16JV_IM 0xEF7015
 
