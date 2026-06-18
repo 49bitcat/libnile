@@ -54,22 +54,42 @@ static inline int16_t nile_mcu_native_eeprom_erase_sync(void) {
     return nile_mcu_native_recv_cmd(NULL, 0);
 }
 
-static inline int16_t nile_mcu_native_eeprom_read_sync(void __far* buffer, uint16_t offset, uint16_t buflen) {
+/**
+ * Read words from the MCU-emulated EEPROM buffer.
+ * @param buffer Buffer to read data to.
+ * @param offset Offset, in bytes
+ * @param length Buffer length, in bytes
+ */
+static inline int16_t nile_mcu_native_eeprom_read_sync(void __far* buffer, uint16_t offset, uint16_t length) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_READ, buflen >> 1), &offset, 2)) < 0) return result;
-    return nile_mcu_native_recv_cmd(buffer, buflen);
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_READ, length >> 1), &offset, 2)) < 0) return result;
+    return nile_mcu_native_recv_cmd(buffer, length);
 }
 
-static inline int16_t nile_mcu_native_eeprom_write_sync(const void __wf_cram* buffer, uint16_t buflen) {
+/**
+ * Write words to the MCU-emulated EEPROM buffer.
+ * @param buffer Buffer to write data from.
+ * @param offset Offset, in bytes
+ * @param length Buffer length, in bytes
+ */
+static inline int16_t nile_mcu_native_eeprom_write_sync(const void __wf_cram* buffer, uint16_t offset, uint16_t length) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, buflen), buffer, buflen)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, length >> 1), &offset, 2)) < 0) return result;
+    if (!nile_spi_tx_async_block(buffer, length)) return NILE_MCU_NATIVE_ERROR_SPI;
     if ((result = nile_mcu_native_recv_cmd(NULL, 0)) < 0) return result;
     return 0;
 }
 
-static inline int16_t nile_mcu_native_eeprom_write_async_start(const void __wf_cram* buffer, uint16_t buflen) {
+/**
+ * Write words to the MCU-emulated EEPROM buffer.
+ * @param buffer Buffer to write data from.
+ * @param offset Offset, in bytes
+ * @param length Buffer length, in bytes
+ */
+static inline int16_t nile_mcu_native_eeprom_write_async_start(const void __wf_cram* buffer, uint16_t offset, uint16_t length) {
     int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, buflen), buffer, buflen)) < 0) return result;
+    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_EEPROM_WRITE, length >> 1), &offset, 2)) < 0) return result;
+    if (!nile_spi_tx_async_block(buffer, length)) return NILE_MCU_NATIVE_ERROR_SPI;
     return nile_mcu_native_recv_cmd_start(0);
 }
 #define nile_mcu_native_eeprom_write_async_finish nile_mcu_native_recv_cmd_response_none
