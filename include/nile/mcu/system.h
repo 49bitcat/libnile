@@ -80,9 +80,10 @@ static inline int16_t nile_mcu_native_mcu_get_version_sync(void __far* buffer, u
 
 static inline int16_t nile_mcu_native_mcu_set_save_id_sync(uint16_t domain, uint32_t value) {
     int16_t result;
+    bool retval = false;
     if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_SET_SAVE_ID, domain), &value, 4)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(NULL, 0)) < 0) return result;
-    return 0;
+    if ((result = nile_mcu_native_recv_cmd(&retval, 1)) <= 0) return result;
+    return retval;
 }
 
 static inline int16_t nile_mcu_native_mcu_get_save_id_sync(uint16_t domain, uint32_t __wf_cram* value) {
