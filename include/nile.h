@@ -36,6 +36,7 @@
 #include "nile/mcu/cdc.h"
 #include "nile/mcu/eeprom.h"
 #include "nile/mcu/rtc.h"
+#include "nile/mcu/system.h"
 #endif /* __ASSEMBLER__ */
 
 #endif /* NILE_H_ */

@@ -77,7 +77,7 @@
 
 /**
  * @brief Reset the MCU.
- * 
+ *
  * @param to_bootloader If true, the MCU is restarted into bootloader mode, allowing use of the nile_mcu_boot functions. If false, the MCU is restarted into the existing firmware flashed on it.
  * @return true Reset successful.
  * @return false Reset failed.
@@ -103,7 +103,7 @@ uint16_t nile_mcu_boot_get_id(void);
 
 /**
  * @brief Request bytes from the MCU's address space.
- * 
+ *
  * @param address MCU address to read data from.
  * @param buffer Buffer to read data to.
  * @param buflen Amount of data to read, in bytes (1 - 256).
@@ -112,14 +112,14 @@ bool nile_mcu_boot_read_memory(uint32_t address, void __far* buffer, uint16_t bu
 
 /**
  * @brief Request that the MCU branch to a specific address in memory.
- * 
+ *
  * @param address Address to branch to.
  */
 bool nile_mcu_boot_jump(uint32_t address);
 
 /**
  * @brief Write bytes to the MCU's address space (RAM or flash memory).
- * 
+ *
  * @param address MCU address to write data to.
  * @param buffer Buffer to write data from.
  * @param buflen Amount of data to write, in bytes (1 - 256).
@@ -128,7 +128,7 @@ bool nile_mcu_boot_write_memory(uint32_t address, const void __far* buffer, uint
 
 /**
  * @brief Erase pages of the MCU's flash memory.
- * 
+ *
  * @param sector_address The starting page to erase.
  * @param sector_count The number of pages to erase.
  * @see NILE_MCU_FLASH_PAGE_SIZE
@@ -154,7 +154,7 @@ static inline bool nile_mcu_boot_erase_all_memory(void) {
 
 /**
  * @brief Send a "native protocol" MCU command asynchronously.
- * 
+ *
  * @param cmd Command.
  * @param buffer Optional parameter buffer.
  * @param buflen Size of the parameter buffer (0 - 512 bytes).
@@ -171,7 +171,7 @@ static inline int16_t nile_mcu_native_send_cmd(uint16_t cmd, const void __far* b
  * @brief Receive the response of a "native protocol" MCU command synchronously.
  *
  * If the response size exceeds the size of the buffer, the remaining bytes are consumed and skipped.
- * 
+ *
  * @param buffer Buffer to receive response to.
  * @param buflen The size of the buffer.
  * @return int16_t The number of bytes received.
@@ -180,7 +180,7 @@ int16_t nile_mcu_native_recv_cmd(void __far* buffer, uint16_t buflen);
 
 /**
  * @brief Start receiving the response of a "native protocol" MCU command asynchronously.
- * 
+ *
  * @param resplen The maximum size of the response.
  * @return int16_t 0 on success, or error code on failure.
  */
@@ -188,7 +188,7 @@ int16_t nile_mcu_native_recv_cmd_start(uint16_t resplen);
 
 /**
  * @brief Finish receiving the response of a "native protocol" MCU command.
- * 
+ *
  * @param buffer Buffer to copy response to.
  * @param buflen The size of the buffer.
  * @return int16_t The number of bytes received.
@@ -210,59 +210,6 @@ static inline int16_t nile_mcu_native_recv_cmd_response_int16(void) {
     int16_t result, bytes = 0;
     if ((result = nile_mcu_native_recv_cmd_finish(&bytes, 2)) < 1) return result;
     return bytes;
-}
-
-/**
- * @brief Switch the mode in which the MCU is operating.
- */
-static inline int16_t nile_mcu_native_mcu_switch_mode(uint8_t mode) {
-    return nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_MODE, mode), NULL, 0);
-}
-
-/**
- * @brief Tell the MCU to operate at a specific SPI speed.
- *
- * This does not actually change the speed used by the cartridge by itself!
- */
-static inline int16_t nile_mcu_native_mcu_spi_set_speed_sync(uint8_t speed) {
-    int16_t result;
-    uint8_t op_result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_FREQ, speed), NULL, 0)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(&op_result, 1)) < 1) return result;
-    return op_result;
-}
-
-static inline int16_t nile_mcu_native_mcu_get_uuid_sync(void __far* buffer, uint16_t buflen) {
-    int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_ID, 0), NULL, 0)) < 0) return result;
-    return nile_mcu_native_recv_cmd(buffer, buflen);
-}
-
-static inline int16_t nile_mcu_native_mcu_get_version_sync(void __far* buffer, uint16_t buflen) {
-    int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_VERSION, 0), NULL, 0)) < 0) return result;
-    return nile_mcu_native_recv_cmd(buffer, buflen);
-}
-
-static inline int16_t nile_mcu_native_mcu_get_info_sync(void __far* buffer, uint16_t buflen) {
-    int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_INFO, 0), NULL, 0)) < 0) return result;
-    return nile_mcu_native_recv_cmd(buffer, buflen);
-}
-
-static inline int16_t nile_mcu_native_mcu_reg_read_sync(uint16_t addr) {
-    int16_t result;
-    uint16_t value;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_REG_READ, addr), NULL, 0)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(&value, 2)) < 0) return result;
-    return value;
-}
-
-static inline int16_t nile_mcu_native_mcu_reg_write_sync(uint16_t addr, uint16_t value) {
-    int16_t result;
-    if ((result = nile_mcu_native_send_cmd(NILE_MCU_NATIVE_CMD(NILE_MCU_NATIVE_CMD_REG_WRITE, addr), &value, 2)) < 0) return result;
-    if ((result = nile_mcu_native_recv_cmd(NULL, 0)) < 0) return result;
-    return 0;
 }
 
 #endif /* __ASSEMBLER__ */
