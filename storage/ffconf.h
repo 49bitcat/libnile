@@ -20,7 +20,7 @@
 /  and optional writing functions as well. */
 
 #ifdef LIBNILE_FLAVOR_IPL1
-#define FF_FS_MINIMIZE	1
+#define FF_FS_MINIMIZE	3
 #else
 #define FF_FS_MINIMIZE	0
 #endif
