@@ -37,21 +37,18 @@
 /* This option switches filtered directory read functions, f_findfirst() and
 /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
 
-// FIXME: Re-enable when wf-tools fixes its linker GC
-#ifndef FF_USE_MKFS
 #if defined(LIBNILE_FLAVOR_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
 #define FF_USE_MKFS	0
 #else
 #define FF_USE_MKFS	1
 #endif
-#endif
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
-
-#if defined(LIBNILE_FLAVOR_IPL1) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
+#if !defined(FF_USE_FASTSEEK) || defined(__IA16_CALLCVT_NO_ASSUME_SS_DATA)
+#ifdef FF_USE_FASTSEEK
+#undef FF_USE_FASTSEEK
+#endif
 #define FF_USE_FASTSEEK	0
-#else
-#define FF_USE_FASTSEEK	1
 #endif
 /* This option switches fast seek function. (0:Disable or 1:Enable) */
 
@@ -60,7 +57,11 @@
 /* This option switches f_expand function. (0:Disable or 1:Enable) */
 
 
+#ifdef LIBNILE_FLAVOR_IPL1
+#define FF_USE_CHMOD	0
+#else
 #define FF_USE_CHMOD	1
+#endif
 /* This option switches attribute manipulation functions, f_chmod() and f_utime().
 /  (0:Disable or 1:Enable) Also FF_FS_READONLY needs to be 0 to enable this option. */
 
@@ -311,7 +312,9 @@
 /  These options have no effect in read-only configuration (FF_FS_READONLY = 1). */
 
 
+#ifndef FF_FS_CRTIME
 #define FF_FS_CRTIME    0
+#endif
 /* This option enables(1)/disables(0) the timestamp of the file created. When
 /  set 1, the file created time is available in FILINFO structure. */
 
@@ -370,8 +373,12 @@
 */
 
 
+#ifndef FF_WF_FAST_CONTIGUOUS_READ
 #define FF_WF_FAST_CONTIGUOUS_READ  1
+#endif
+#ifndef FF_WF_FAST_CONTIGUOUS_WRITE
 #define FF_WF_FAST_CONTIGUOUS_WRITE 0
+#endif
 /* FF_WF_FAST_CONTIGUOUS_* controls whether or not contiguous reads or writes
 /  of more than 1 cluster (>4-32KB) are optimized to use large disk_read()
 /  and disk_write() calls. This can be useful on platforms where the cost of
