@@ -454,4 +454,10 @@
 #define FF_WF_CONST_ADDRESS_SPACE __wf_rom
 #endif
 
+#ifdef LIBNILE_FLAVOR_IPL1
+#define FF_WF_MINIMIZE_UNSAFE 1
+#else
+#define FF_WF_MINIMIZE_UNSAFE 0
+#endif
+
 /*--- End of configuration options ---*/
