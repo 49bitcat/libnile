@@ -32,6 +32,7 @@
 #include "nile/mcu/rtc.h"
 #include "../core/config_internal.h"
 #include "diskio.h"
+#include "tfcache.h"
 
 #define USE_MULTI_TRANSFER_READS
 #define USE_MULTI_TRANSFER_WRITES
@@ -168,7 +169,7 @@ void nilefs_eject(void) {
 // Internal symbol, do not remove
 void nilefs_ipc_sync(void) {
 	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
-	
+
 	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
 	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
 	if (powcnt & NILE_POW_TF) {
@@ -187,7 +188,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 	uint8_t buffer[8];
 
 	uint8_t powcnt = inportb(IO_NILE_POW_CNT);
-	
+
 	uint16_t prev_sram_bank = inportw(WS_CART_EXTBANK_RAM_PORT);
 	outportw(WS_CART_EXTBANK_RAM_PORT, NILE_SEG_RAM_IPC);
 	if (powcnt & NILE_POW_TF) {
@@ -199,6 +200,10 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		card_state = 0;
 	}
 	outportw(WS_CART_EXTBANK_RAM_PORT, prev_sram_bank);
+
+#ifdef LIBNILE_ENABLE_TF_CACHE
+    nile_tfcache_invalidate_all();
+#endif
 
 	if (card_state != 0) return 0;
 	nile_spi_set_timeout(1000);
@@ -215,7 +220,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 		// Power card on
 		powcnt |= NILE_POW_TF;
 		outportb(IO_NILE_POW_CNT, powcnt);
-	
+
 		// ChaN recommends 10 ms, but this might include chip power on time;
 		// do 20 ms just to be safe.
 		ws_delay_ms(20);
@@ -344,7 +349,7 @@ uint8_t nilefs_gdma_scratch_buffer[0x200];
 __attribute__((noinline))
 static bool nile_tf_read_data(void __far* buff, uint16_t len) {
 	uint8_t resp[1];
-	
+
 	if (!nile_spi_rx_sync_block(resp, 1, NILE_SPI_MODE_WAIT_READ)) {
 		set_detail_code(0x11);
 		return false;
@@ -378,6 +383,17 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 
+#ifdef LIBNILE_ENABLE_TF_CACHE
+    void *cache_buffer = NULL;
+    if (pdrv == 0x80 && count == 1) {
+        bool valid = nile_tfcache_get(sector, &cache_buffer);
+        if (valid) {
+            memcpy(buff, cache_buffer, 512);
+            return RES_OK;
+        }
+    }
+#endif
+
 	if (!(card_state & NILE_IPC_TF_BLOCK))
 		sector <<= 9;
 
@@ -393,15 +409,15 @@ DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t 
 	if (!(FP_OFF(buff) & 0x1FF) && FP_SEG(buff) == 0x1000 && inportb(WS_CART_BANK_FLASH_PORT) && !(inportb(WS_CART_EXTBANK_RAM_PORT + 1) & 1) && lodsw_supported()) {
 #ifdef LIBNILEFS_ENABLE_LODSW_GDMA_READ
 		if (ws_system_is_color_active()) {
-			if (!nile_disk_read_inner_lodsw_gdma((BYTE*) FP_OFF(buff), count)) 
+			if (!nile_disk_read_inner_lodsw_gdma((BYTE*) FP_OFF(buff), count))
 				goto disk_read_stop;
-		} else 
+		} else
 #endif
-		if (!nile_disk_read_inner_lodsw((BYTE*) FP_OFF(buff), count)) 
+		if (!nile_disk_read_inner_lodsw((BYTE*) FP_OFF(buff), count))
 			goto disk_read_stop;
 	} else
 #endif
-	if (!nile_disk_read_inner(buff, count)) 
+	if (!nile_disk_read_inner(buff, count))
 		goto disk_read_stop;
 #else
 	while (count) {
@@ -462,6 +478,15 @@ disk_read_stop:
 	result = RES_OK;
 disk_read_end:
 	nile_tf_cs_high();
+#ifdef LIBNILE_ENABLE_TF_CACHE
+    if (result == RES_OK) {
+        if (cache_buffer != NULL) {
+            memcpy(cache_buffer, buff, 512);
+        }
+    } else {
+        nile_tfcache_invalidate(sector);
+    }
+#endif
 	return result;
 }
 
@@ -470,6 +495,14 @@ disk_read_end:
 DRESULT disk_write (BYTE pdrv, const BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[2];
+
+#ifdef LIBNILE_ENABLE_TF_CACHE
+	if (count > 1) {
+	    nile_tfcache_invalidate_many(sector, sector + count - 1);
+	} else {
+	    nile_tfcache_invalidate(sector);
+	}
+#endif
 
 	if (!(card_state & NILE_IPC_TF_BLOCK))
 		sector <<= 9;
@@ -599,7 +632,7 @@ bool nilefs_read_card_ssr(void __far* buff) {
 
 uint32_t nilefs_read_card_sector_count(void) {
 	uint8_t csd[16];
-	
+
 	if (nilefs_read_card_csd(csd)) {
 		switch (csd[0] >> 6) {
 		case 0: {
@@ -621,7 +654,7 @@ static const uint8_t ws_rom alloc_unit_table[5] = {12, 16, 24, 32, 64};
 
 uint32_t nilefs_read_card_block_size(void) {
 	uint8_t csd[64];
-	
+
 	if (card_state & NILE_IPC_TF_TYPE_TF_NEW) {
 		if (nilefs_read_card_ssr(csd)) {
 			uint8_t shift = csd[10] >> 4;

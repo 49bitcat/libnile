@@ -408,7 +408,11 @@
 */
 
 
+#ifdef LIBNILE_ENABLE_TF_CACHE
+#define FF_WF_MARK_WINDOW_READS 1
+#else
 #define FF_WF_MARK_WINDOW_READS 0
+#endif
 /* FF_WF_MARK_WINDOW_READS allows marking reads done on the FATFS instance's
 /  window (directory/cluster reads) with an "| 0x80" on the pdrv argument
 /  in disk_read(). This can be used as information for sector caching
