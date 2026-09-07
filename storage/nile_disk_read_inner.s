@@ -207,7 +207,7 @@ nile_disk_read_inner_lodsw_loop:
 
     // read 1 byte to buffer B
     __waitread1
-    
+
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
     jz 9f
@@ -218,7 +218,7 @@ nile_disk_read_inner_lodsw_loop:
     out IO_NILE_SPI_CNT, ax
 
     and ax, NILE_SPI_CFG_MASK
-    
+
     // resp[0] == 0xFE?
     cmp byte ptr [0x0000], 0xFE
     jne 9f
@@ -343,7 +343,7 @@ nile_disk_read_inner_lodsw_gdma_loop:
 
     // read 1 byte to buffer B
     __waitread1
-    
+
     // Wait for SPI to be ready
     call __nile_spi_wait_ready_near
     jz 9f
@@ -354,7 +354,7 @@ nile_disk_read_inner_lodsw_gdma_loop:
     out IO_NILE_SPI_CNT, ax
 
     and ax, NILE_SPI_CFG_MASK
-    
+
     // resp[0] == 0xFE?
     cmp byte ptr [0x0000], 0xFE
     jne 9f
@@ -402,5 +402,30 @@ nile_disk_read_inner_lodsw_gdma_loop:
 
     pop ds
     popf
+    IA16_RET
+#endif
+
+#ifdef LIBNILE_ENABLE_TF_CACHE
+    .global nile_tfcache_copy
+nile_tfcache_copy:
+    push si
+    push di
+    push es
+
+    // DS:DX => DS:AX
+    mov si, dx
+    push ds
+    pop es
+    mov di, ax
+
+    cld
+    call __nile_movsw80
+    call __nile_movsw144
+    call __nile_movsw144
+    call __nile_movsw144
+
+    pop es
+    pop di
+    pop si
     IA16_RET
 #endif

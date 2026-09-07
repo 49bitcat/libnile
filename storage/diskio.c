@@ -379,16 +379,20 @@ static bool lodsw_supported(void) {
 }
 #endif
 
+#ifdef LIBNILE_ENABLE_TF_CACHE
+extern void nile_tfcache_copy(void *dest, const void *src);
+#endif
+
 DRESULT disk_read (BYTE pdrv, BYTE FF_WF_DATA_BUFFER_ADDRESS_SPACE* buff, LBA_t sector, UINT count) {
 	uint8_t result = RES_ERROR;
 	uint8_t resp[8];
 
 #ifdef LIBNILE_ENABLE_TF_CACHE
     void *cache_buffer = NULL;
-    if (pdrv == 0x80 && count == 1) {
+    if (pdrv == 0x80 && !FP_SEG(buff) && count == 1) {
         bool valid = nile_tfcache_get(sector, &cache_buffer);
         if (valid) {
-            memcpy(buff, cache_buffer, 512);
+            nile_tfcache_copy((void*) buff, cache_buffer);
             return RES_OK;
         }
     }
@@ -481,7 +485,7 @@ disk_read_end:
 #ifdef LIBNILE_ENABLE_TF_CACHE
     if (result == RES_OK) {
         if (cache_buffer != NULL) {
-            memcpy(cache_buffer, buff, 512);
+            nile_tfcache_copy(cache_buffer, (void*) buff);
         }
     } else {
         nile_tfcache_invalidate(sector);

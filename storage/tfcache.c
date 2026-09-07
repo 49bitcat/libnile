@@ -22,6 +22,8 @@
 
 #define TFCACHE_DEBUG
 
+#include "../core/config_internal.h"
+
 #ifdef LIBNILE_ENABLE_TF_CACHE
 #include <string.h>
 #include <ws.h>
@@ -46,17 +48,21 @@ typedef struct {
 #endif
 } tfcache_t;
 
+#ifdef LIBNILE_TF_CACHE_COLOR_ONLY
 __attribute__((section(".iramCx.nile_tfcache")))
+#endif
 tfcache_t nile_tfcache;
 
 bool nile_tfcache_get(LBA_t sector, void **buffer) {
     uint16_t used_diff = 0;
     uint16_t to_use_entry = 0xFFFF;
 
+#ifdef LIBNILE_TF_CACHE_COLOR_ONLY
     if (!ws_system_is_color_active()) {
         *buffer = NULL;
         return false;
     }
+#endif
 
     for (int i = 0; i < LIBNILE_TFCACHE_SECTOR_COUNT; i++) {
         tfcache_entry_t *entry = &nile_tfcache.entry[i];
@@ -95,7 +101,9 @@ bool nile_tfcache_get(LBA_t sector, void **buffer) {
 }
 
 void nile_tfcache_invalidate(LBA_t sector) {
+#ifdef LIBNILE_TF_CACHE_COLOR_ONLY
     if (!ws_system_is_color_active()) return;
+#endif
 
     for (int i = 0; i < LIBNILE_TFCACHE_SECTOR_COUNT; i++) {
         if (nile_tfcache.entry[i].sector == sector) {
@@ -106,7 +114,9 @@ void nile_tfcache_invalidate(LBA_t sector) {
 }
 
 void nile_tfcache_invalidate_many(LBA_t sector_from, LBA_t sector_to) {
+#ifdef LIBNILE_TF_CACHE_COLOR_ONLY
     if (!ws_system_is_color_active()) return;
+#endif
 
     for (int i = 0; i < LIBNILE_TFCACHE_SECTOR_COUNT; i++) {
         if (nile_tfcache.entry[i].sector >= sector_from && nile_tfcache.entry[i].sector <= sector_to) {
@@ -116,7 +126,9 @@ void nile_tfcache_invalidate_many(LBA_t sector_from, LBA_t sector_to) {
 }
 
 void nile_tfcache_invalidate_all(void) {
+#ifdef LIBNILE_TF_CACHE_COLOR_ONLY
     if (!ws_system_is_color_active()) return;
+#endif
 
 #ifdef TFCACHE_DEBUG
     memset(&nile_tfcache, 0, sizeof(nile_tfcache));
