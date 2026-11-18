@@ -35,13 +35,11 @@ nile_spi_rx_sync_flip:
     IA16_CALL_LOCAL nile_spi_rx_async
     test al, al
     jz 9f
-    
+
     call __nile_spi_wait_ready_near
     jz 9f
 
-    in al, (IO_NILE_SPI_CNT+1)
-    xor al, (NILE_SPI_BUFFER_IDX >> 8)
-    out (IO_NILE_SPI_CNT+1), al
+    m_nile_spi_flip_buffer_al
 
 9:
     jmp nile_spi_abort

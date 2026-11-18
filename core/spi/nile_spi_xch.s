@@ -74,9 +74,7 @@ nile_spi_xch:
     out WS_CART_EXTBANK_ROM1_PORT, ax
 
     // flip SPI buffer
-    in al, (IO_NILE_SPI_CNT+1)
-    xor al, (NILE_SPI_BUFFER_IDX >> 8)
-    out (IO_NILE_SPI_CNT+1), al
+    m_nile_spi_flip_buffer_al
 
     xor ax, ax
     mov al, [0x0000]

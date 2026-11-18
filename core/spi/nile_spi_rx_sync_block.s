@@ -61,9 +61,7 @@ nile_spi_rx_sync_block:
     xchg ax, bx
 #endif
     // outportw(IO_NILE_SPI_CNT, new_cnt ^ NILE_SPI_BUFFER_IDX);
-    in al, (IO_NILE_SPI_CNT+1)
-    xor al, (NILE_SPI_BUFFER_IDX >> 8)
-    out (IO_NILE_SPI_CNT+1), al
+    m_nile_spi_flip_buffer_al
     // outportw(WS_CART_EXTBANK_ROM1_PORT, NILE_SEG_ROM_SPI_RX);
     mov ax, NILE_SEG_ROM_SPI_RX
     out WS_CART_EXTBANK_ROM1_PORT, ax

@@ -68,3 +68,9 @@
     test ah, ah
     js 1b
 .endm
+
+.macro m_nile_spi_flip_buffer_al
+    in al, (IO_NILE_SPI_CNT+1)
+    xor al, (NILE_SPI_BUFFER_IDX >> 8)
+    out (IO_NILE_SPI_CNT+1), al
+.endm
